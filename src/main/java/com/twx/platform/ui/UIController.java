@@ -15,26 +15,21 @@ import com.twx.platform.position.impl.CashPercentagePositionSizer;
 import com.twx.platform.strategy.Strategy;
 import com.twx.platform.strategy.impl.MovingAverageCrossStrategy;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import org.ta4j.core.BarSeries;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-/**
- * UI控制器，经过极大简化。
- * - 移除了所有复杂的K线图绘制逻辑。
- * - UI只负责展示由后端计算好的数据。
- */
 public class UIController {
 
-    // FXML 控件的注入
+    // --- FXML 控件注入 ---
     @FXML private TextField tickerField;
     @FXML private TextField initialCashField;
     @FXML private DatePicker startDatePicker;
@@ -43,32 +38,65 @@ public class UIController {
     @FXML private LineChart<String, Number> priceChart;
     @FXML private TextArea summaryArea;
 
+    // ★★★ 新增：交易日志表格及其列的 FXML 注入 ★★★
+    @FXML private TableView<Order> tradeLogTable;
+    @FXML private TableColumn<Order, String> dateColumn;
+    @FXML private TableColumn<Order, String> signalColumn;
+    @FXML private TableColumn<Order, Double> priceColumn;
+    @FXML private TableColumn<Order, Double> quantityColumn;
+    @FXML private TableColumn<Order, String> valueColumn;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+
     @FXML
     public void initialize() {
-        // 设置默认日期
+        // 初始化默认日期
         startDatePicker.setValue(LocalDate.of(2023, 1, 1));
         endDatePicker.setValue(LocalDate.now());
+        // ★★★ 新增：初始化表格列的配置 ★★★
+        initializeTable();
     }
 
     /**
-     * "运行回测"按钮的事件处理器。
+     * 【新增】配置交易日志表格的每一列如何从 Order 对象中获取数据。
+     *  这个方法只在程序启动时调用一次。
      */
+    private void initializeTable() {
+        // PropertyValueFactory 会自动寻找 Order record 中对应名称的方法 (如 timestamp(), signal() 等)
+        dateColumn.setCellValueFactory(cellData -> {
+            // 对日期进行格式化，使其更美观
+            String formattedDate = cellData.getValue().timestamp().format(DATE_FORMATTER);
+            return new SimpleStringProperty(formattedDate);
+        });
+        signalColumn.setCellValueFactory(new PropertyValueFactory<>("signal"));
+        priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
+        quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+
+        // "成交金额" 是一个计算列，需要特别处理
+        valueColumn.setCellValueFactory(cellData -> {
+            Order order = cellData.getValue();
+            double value = order.price() * order.quantity();
+            // 格式化为带两位小数的字符串
+            return new SimpleStringProperty(String.format("%,.2f", value));
+        });
+    }
+
+
     @FXML
     private void handleRunBacktest() {
+        // (此方法中的回测逻辑保持不变)
         runButton.setDisable(true);
         summaryArea.setText("正在运行回测，请稍候...");
 
-        // 将耗时的回测任务放到后台线程，防止UI卡顿
         new Thread(() -> {
             try {
-                // 1. 从UI获取参数
                 String tickerSymbol = tickerField.getText();
                 LocalDate startDate = startDatePicker.getValue();
                 LocalDate endDate = endDatePicker.getValue();
                 double initialCash = Double.parseDouble(initialCashField.getText());
                 double commissionRate = 0.0003;
 
-                // 2. 组装回测组件
                 DataProvider dataProvider = new SinaDataProvider();
                 Ticker ticker = new Ticker(tickerSymbol);
                 Portfolio portfolio = new BasicPortfolio(initialCash, commissionRate);
@@ -81,14 +109,13 @@ public class UIController {
                     return;
                 }
                 Strategy strategy = new MovingAverageCrossStrategy(series, 10, 30);
-
-                // 3. 运行回测并获取包含所有预计算数据的结果
                 BacktestResult result = engine.run(strategy, portfolio, positionSizer);
 
-                // 4. 回到UI线程，用结果更新界面
                 Platform.runLater(() -> {
                     updateChart(result);
                     updateSummary(result);
+                    // ★★★ 新增：调用方法更新交易日志表格 ★★★
+                    updateTradeLog(result);
                 });
 
             } catch (Exception e) {
@@ -101,9 +128,14 @@ public class UIController {
     }
 
     /**
-     * 【极大简化】更新图表的方法。
-     * 它只负责将传入的数据“画”出来。
+     * 【新增】用回测结果中的交易列表填充表格。
      */
+    private void updateTradeLog(BacktestResult result) {
+        tradeLogTable.getItems().clear(); // 先清空旧数据
+        tradeLogTable.getItems().addAll(result.executedOrders()); // 添加所有新交易
+    }
+
+    // (updateChart, updateSummary 和其他辅助方法保持不变)
     private void updateChart(BacktestResult result) {
         priceChart.getData().clear();
         String cssPath = getClass().getResource("style.css").toExternalForm();
@@ -114,29 +146,23 @@ public class UIController {
         BarSeries series = result.series();
         if (series.isEmpty()) return;
 
-        // --- 创建各个数据系列 ---
         XYChart.Series<String, Number> closePriceSeries = createClosePriceSeries(series);
         XYChart.Series<String, Number> buySignalsSeries = createSignalSeries("买入点", result.executedOrders(), TradeSignal.BUY);
         XYChart.Series<String, Number> sellSignalsSeries = createSignalSeries("卖出点", result.executedOrders(), TradeSignal.SELL);
 
-        // --- 将所有系列添加到图表中 ---
         priceChart.getData().add(closePriceSeries);
 
-        // 动态添加指标线
         for (Map.Entry<String, Map<Integer, Double>> entry : result.indicatorsData().entrySet()) {
             priceChart.getData().add(createIndicatorSeries(entry.getKey(), series, entry.getValue()));
         }
 
         priceChart.getData().addAll(buySignalsSeries, sellSignalsSeries);
 
-        // --- 为买卖点应用CSS样式 ---
         Platform.runLater(() -> {
             applyCssToSeries(buySignalsSeries, "buy-signal-symbol");
             applyCssToSeries(sellSignalsSeries, "sell-signal-symbol");
         });
     }
-
-    // --- 以下是将UI更新逻辑拆分成的辅助方法，使代码更清晰 ---
 
     private XYChart.Series<String, Number> createClosePriceSeries(BarSeries series) {
         XYChart.Series<String, Number> dataSeries = new XYChart.Series<>();
