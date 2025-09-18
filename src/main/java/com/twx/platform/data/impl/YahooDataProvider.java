@@ -21,7 +21,7 @@ public class YahooDataProvider implements DataProvider {
     @Override
     public BarSeries getHistoricalData(Ticker ticker, LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
         // 创建一个ta4j的BarSeries实例
-        BarSeries series = new BaseBarSeries(ticker.getSymbol() + "_SERIES");
+        BarSeries series = new BaseBarSeries(ticker.symbol() + "_SERIES");
 
         // --- 新增的重试逻辑 ---
         int maxRetries = 3; // 最多重试3次
@@ -31,7 +31,7 @@ public class YahooDataProvider implements DataProvider {
         while (retryCount < maxRetries) {
             try {
                 // 设置超时时间 (例如10秒)
-                Stock stock = YahooFinance.get(ticker.getSymbol());
+                Stock stock = YahooFinance.get(ticker.symbol());
 
                 // 设置时间范围
                 Calendar from = Calendar.getInstance();
@@ -59,7 +59,7 @@ public class YahooDataProvider implements DataProvider {
                 }
 
                 // 如果代码能成功运行到这里，说明数据获取成功，我们跳出循环
-                System.out.println("成功获取股票数据: " + ticker.getSymbol());
+                System.out.println("成功获取股票数据: " + ticker.symbol());
                 return series;
 
             } catch (Exception e) {
@@ -78,7 +78,7 @@ public class YahooDataProvider implements DataProvider {
         }
 
         // 如果重试3次后仍然失败，打印最终错误并返回空数据
-        System.err.println("重试多次后，仍然无法获取股票数据: " + ticker.getSymbol());
+        System.err.println("重试多次后，仍然无法获取股票数据: " + ticker.symbol());
         return series;
     }
 }

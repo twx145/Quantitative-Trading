@@ -24,24 +24,24 @@ public class BasicPortfolio implements Portfolio {
 
     @Override
     public void processOrder(Order order) {
-        String symbol = order.getTicker().getSymbol();
-        double quantity = order.getQuantity();
-        double price = order.getPrice();
+        String symbol = order.ticker().symbol();
+        double quantity = order.quantity();
+        double price = order.price();
         double cost = quantity * price;
 
-        if (order.getSignal() == TradeSignal.BUY) {
+        if (order.signal() == TradeSignal.BUY) {
             if (cash >= cost) {
                 cash -= cost;
                 holdings.put(symbol, holdings.getOrDefault(symbol, 0.0) + quantity);
-                System.out.printf("%s: 买入 %s, 数量 %.2f, 价格 %.2f\n", order.getTimestamp().toLocalDate(), symbol, quantity, price);
+                System.out.printf("%s: 买入 %s, 数量 %.2f, 价格 %.2f\n", order.timestamp().toLocalDate(), symbol, quantity, price);
             } else {
                 System.out.println("现金不足，无法买入！");
             }
-        } else if (order.getSignal() == TradeSignal.SELL) {
+        } else if (order.signal() == TradeSignal.SELL) {
             if (holdings.getOrDefault(symbol, 0.0) >= quantity) {
                 cash += cost;
                 holdings.put(symbol, holdings.get(symbol) - quantity);
-                System.out.printf("%s: 卖出 %s, 数量 %.2f, 价格 %.2f\n", order.getTimestamp().toLocalDate(), symbol, quantity, price);
+                System.out.printf("%s: 卖出 %s, 数量 %.2f, 价格 %.2f\n", order.timestamp().toLocalDate(), symbol, quantity, price);
             } else {
                 System.out.println("持仓不足，无法卖出！");
             }
@@ -50,7 +50,7 @@ public class BasicPortfolio implements Portfolio {
 
     @Override
     public void updateValue(Ticker ticker, double currentPrice) {
-        double holdingsValue = holdings.getOrDefault(ticker.getSymbol(), 0.0) * currentPrice;
+        double holdingsValue = holdings.getOrDefault(ticker.symbol(), 0.0) * currentPrice;
         this.totalValue = this.cash + holdingsValue;
     }
 
