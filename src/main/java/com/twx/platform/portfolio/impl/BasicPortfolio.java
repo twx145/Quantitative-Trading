@@ -6,9 +6,7 @@ import com.twx.platform.common.TradeSignal;
 import com.twx.platform.portfolio.Portfolio;
 
 import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 投资组合的基本实现。
@@ -20,6 +18,7 @@ public class BasicPortfolio implements Portfolio {
     private double cash;
     private final Map<String, Double> holdings; // Key: Ticker Symbol, Value: Quantity
     private double totalValue;
+    private final List<String> tradeLog;
 
     /**
      * 构造函数
@@ -32,6 +31,7 @@ public class BasicPortfolio implements Portfolio {
         this.commissionRate = commissionRate;
         this.holdings = new HashMap<>();
         this.totalValue = initialCash;
+        this.tradeLog = new ArrayList<>();
     }
 
     @Override
@@ -41,16 +41,17 @@ public class BasicPortfolio implements Portfolio {
         double price = order.price();
         double grossValue = quantity * price; // 交易总额（毛值）
         double commission = grossValue * commissionRate; // 手续费
+        String logMessage = "";
 
         if (order.signal() == TradeSignal.BUY) {
             double totalCost = grossValue + commission; // 买入总花费
             if (cash >= totalCost) {
                 cash -= totalCost;
                 holdings.put(symbol, holdings.getOrDefault(symbol, 0.0) + quantity);
-                System.out.printf("%s: 买入 %s, 数量 %.2f, 价格 %.2f, 手续费 %.2f\n",
+                logMessage = String.format("%s: 买入 %s, 数量 %.2f, 价格 %.2f, 手续费 %.2f",
                         order.timestamp().toLocalDate(), symbol, quantity, price, commission);
             } else {
-                System.out.printf("%s: 现金不足 (需要 %.2f, 只有 %.2f)，无法买入！\n",
+                logMessage = String.format("%s: 现金不足 (需要 %.2f, 只有 %.2f)，无法买入！",
                         order.timestamp().toLocalDate(), totalCost, cash);
             }
         } else if (order.signal() == TradeSignal.SELL) {
@@ -58,12 +59,17 @@ public class BasicPortfolio implements Portfolio {
                 double totalProceeds = grossValue - commission; // 卖出总收入
                 cash += totalProceeds;
                 holdings.put(symbol, holdings.get(symbol) - quantity);
-                System.out.printf("%s: 卖出 %s, 数量 %.2f, 价格 %.2f, 手续费 %.2f\n",
+                logMessage = String.format("%s: 卖出 %s, 数量 %.2f, 价格 %.2f, 手续费 %.2f",
                         order.timestamp().toLocalDate(), symbol, quantity, price, commission);
             } else {
-                System.out.printf("%s: 持仓不足 (需要 %.2f, 只有 %.2f)，无法卖出！\n",
+                logMessage = String.format("%s: 持仓不足 (需要 %.2f, 只有 %.2f)，无法卖出！",
                         order.timestamp().toLocalDate(), quantity, holdings.getOrDefault(symbol, 0.0));
             }
+        }
+
+        if (!logMessage.isEmpty()) {
+            System.out.println(logMessage); // 仍然在控制台打印一份，方便调试
+            tradeLog.add(logMessage);       // 将日志消息添加到列表中
         }
     }
 
@@ -156,5 +162,19 @@ public class BasicPortfolio implements Portfolio {
         });
 
         return summary;
+    }
+
+    public String getTradeLogAsString() {
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("--- 交易日志 ---\n");
+        if (tradeLog.isEmpty()) {
+            logBuilder.append(" (无交易记录)\n");
+        } else {
+            for (String log : tradeLog) {
+                logBuilder.append(log).append("\n");
+            }
+        }
+        logBuilder.append("----------------\n");
+        return logBuilder.toString();
     }
 }

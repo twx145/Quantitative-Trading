@@ -209,7 +209,9 @@ public class UIController {
 
     private void updateSummary(BacktestResult result) {
         if (result.finalPortfolio() instanceof BasicPortfolio bp) {
-            summaryArea.setText(bp.getSummary());
+            String tradeLog = bp.getTradeLogAsString();
+            String summary = bp.getSummary();
+            summaryArea.setText(tradeLog + "\n" + summary);
         }
     }
 }
