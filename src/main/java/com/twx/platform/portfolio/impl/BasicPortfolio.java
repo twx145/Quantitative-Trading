@@ -107,6 +107,34 @@ public class BasicPortfolio implements Portfolio {
         System.out.println("--------------------\n");
     }
 
+    /**
+     * 【新增】生成并返回业绩总结报告字符串。
+     * @return 格式化后的业绩报告
+     */
+    public String getSummary() {
+        StringBuilder summary = new StringBuilder();
+        summary.append("\n--- 投资组合总结 ---\n");
+        summary.append(String.format("初始资金: %,.2f\n", initialCash));
+        summary.append(String.format("最终总价值: %,.2f\n", totalValue));
+        double returnRate = (initialCash == 0) ? 0 : (totalValue - initialCash) / initialCash;
+        summary.append(String.format("总收益率: %.2f%%\n", returnRate * 100));
+        summary.append(String.format("剩余现金: %,.2f\n", cash));
+        summary.append("最终持仓:\n");
+
+        boolean hasHoldings = holdings.values().stream().anyMatch(q -> q > 0.0001);
+        if (!hasHoldings) {
+            summary.append("  (空仓)\n");
+        } else {
+            holdings.forEach((symbol, quantity) -> {
+                if (quantity > 0.0001) {
+                    summary.append(String.format("  %s: %.2f 股\n", symbol, quantity));
+                }
+            });
+        }
+        summary.append("--------------------\n");
+        return summary.toString();
+    }
+
     @Override
     public Map<String, String> getSummaryMap() {
         Map<String, String> summary = new LinkedHashMap<>();
