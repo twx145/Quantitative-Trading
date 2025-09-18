@@ -9,6 +9,8 @@ import com.twx.platform.portfolio.Portfolio;
 import com.twx.platform.position.PositionSizer;
 import com.twx.platform.strategy.Strategy;
 import org.ta4j.core.BarSeries;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDate;
 
@@ -45,41 +47,37 @@ public class BacktestEngine {
      * @param portfolio     投资组合
      * @param positionSizer 仓位管理器
      */
-    public void run(Strategy strategy, Portfolio portfolio, PositionSizer positionSizer) {
+    public BacktestResult run(Strategy strategy, Portfolio portfolio, PositionSizer positionSizer) {
         System.out.printf("--- 开始回测 [%s] 策略 ---\n", strategy.getName());
         System.out.printf("标的: %s, 时间: %s to %s\n", ticker, startDate, endDate);
 
-        // 1. 获取完整的历史数据
+        List<Order> executedOrders = new ArrayList<>(); // 用于记录所有交易
         BarSeries series = dataProvider.getHistoricalData(ticker, startDate, endDate, timeFrame);
+
         if (series.isEmpty()) {
             System.out.println("数据为空，无法回测！");
-            return;
+            return new BacktestResult(series, executedOrders, portfolio); // 返回空结果
         }
 
-        // 2. 核心回测循环：遍历每一根K线
         for (int i = 0; i < series.getBarCount(); i++) {
-            // 2.1 策略根据当前索引生成信号 (优化点)
             TradeSignal signal = strategy.generateSignal(i, series, portfolio);
 
-            // 2.2 如果有买卖信号，则创建并处理订单
             if (signal != TradeSignal.HOLD) {
                 double price = series.getBar(i).getClosePrice().doubleValue();
-
-                // 2.3 使用仓位管理器计算交易数量 (优化点)
                 double quantity = positionSizer.calculateQuantity(price, portfolio);
 
                 if (quantity > 0) {
                     Order order = new Order(ticker, signal, quantity, price, series.getBar(i).getEndTime());
-                    // 2.4 投资组合处理订单
                     portfolio.processOrder(order);
+                    executedOrders.add(order); // 记录已执行的订单
                 }
             }
-
-            // 2.5 每日结束时，用收盘价更新投资组合的总价值
             portfolio.updateValue(ticker, series.getBar(i).getClosePrice().doubleValue());
         }
 
         System.out.println("--- 回测结束 ---");
-        portfolio.printSummary();
+        // portfolio.printSummary(); // 不再在这里打印
+
+        return new BacktestResult(series, executedOrders, portfolio); // 返回完整的结果对象
     }
 }

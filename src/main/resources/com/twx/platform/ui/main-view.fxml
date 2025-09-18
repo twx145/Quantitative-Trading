@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.twx.platform.ui.UIController">
+    <top>
+        <!-- 顶部控制面板 -->
+        <VBox spacing="10.0" style="-fx-border-width: 0 0 1 0; -fx-border-color: #cccccc;">
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+            <Label text="量化回测平台">
+                <font>
+                    <Font name="System Bold" size="20.0"/>
+                </font>
+            </Label>
+            <GridPane hgap="10.0" vgap="10.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="150.0"/>
+                    <ColumnConstraints hgrow="NEVER"/>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                </columnConstraints>
+                <Label text="股票代码:" GridPane.columnIndex="0"/>
+                <TextField fx:id="tickerField" text="sh600519" GridPane.columnIndex="1"/>
+                <Label text="开始日期:" GridPane.columnIndex="2"/>
+                <DatePicker fx:id="startDatePicker" GridPane.columnIndex="3"/>
+                <Label text="初始资金:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                <DatePicker fx:id="endDatePicker" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRunBacktest" prefHeight="50.0"
+                        text="运行回测" GridPane.columnIndex="5" GridPane.rowIndex="0" GridPane.rowSpan="2"/>
+            </GridPane>
+        </VBox>
+    </top>
+    <center>
+        <!-- 中央主区域，使用可分割的面板 -->
+        <SplitPane fx:id="mainSplitPane" dividerPositions="0.75" BorderPane.alignment="CENTER">
+            <!-- 左侧：图表区域 -->
+            <StackPane  fx:id="chartPane">
+                <!-- 我们把 LineChart 放在 StackPane 中，是为了以后可以方便地在上面叠加更多图层 -->
+                <LineChart fx:id="priceChart" animated="false" title="价格走势">
+                    <xAxis>
+                        <CategoryAxis side="BOTTOM" label="日期"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis side="LEFT" label="价格"/>
+                    </yAxis>
+                </LineChart>
+            </StackPane>
+
+            <!-- 右侧：信息展示区 -->
+            <TabPane tabClosingPolicy="UNAVAILABLE">
+                <Tab text="回测总结">
+                    <TableView fx:id="summaryTable">
+                        <columns>
+                            <TableColumn prefWidth="120.0" text="项目"/>
+                            <TableColumn prefWidth="180.0" text="数值"/>
+                        </columns>
+                    </TableView>
+                </Tab>
+                <Tab text="交易记录">
+                    <TableView fx:id="tradeLogTable">
+                        <columns>
+                            <TableColumn prefWidth="100.0" text="日期"/>
+                            <TableColumn prefWidth="60.0" text="方向"/>
+                            <TableColumn prefWidth="80.0" text="数量"/>
+                            <TableColumn prefWidth="80.0" text="价格"/>
+                            <TableColumn prefWidth="80.0" text="手续费"/>
+                        </columns>
+                    </TableView>
+                </Tab>
+                <Tab text="日志/输出">
+                    <TextArea fx:id="summaryArea" editable="false" wrapText="true"/>
+                </Tab>
+            </TabPane>
+        </SplitPane>
+    </center>
+</BorderPane>

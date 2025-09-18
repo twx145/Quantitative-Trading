@@ -5,7 +5,9 @@ import com.twx.platform.common.Ticker;
 import com.twx.platform.common.TradeSignal;
 import com.twx.platform.portfolio.Portfolio;
 
+import java.text.NumberFormat;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -103,5 +105,28 @@ public class BasicPortfolio implements Portfolio {
             });
         }
         System.out.println("--------------------\n");
+    }
+
+    @Override
+    public Map<String, String> getSummaryMap() {
+        Map<String, String> summary = new LinkedHashMap<>();
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(); // 用于格式化货币
+        NumberFormat percentFormat = NumberFormat.getPercentInstance();
+        percentFormat.setMinimumFractionDigits(2);
+
+        summary.put("初始资金", currencyFormat.format(initialCash));
+        summary.put("最终总价值", currencyFormat.format(totalValue));
+        double returnRate = (initialCash == 0) ? 0 : (totalValue - initialCash) / initialCash;
+        summary.put("总收益率", percentFormat.format(returnRate));
+        summary.put("剩余现金", currencyFormat.format(cash));
+
+        // 添加持仓信息
+        holdings.forEach((symbol, quantity) -> {
+            if (quantity > 0.0001) {
+                summary.put("持仓: " + symbol, String.format("%.2f 股", quantity));
+            }
+        });
+
+        return summary;
     }
 }

@@ -1,9 +1,6 @@
 package com.twx.platform.data.impl;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+// 移除了所有 com.google.gson.* 的导入
 import com.twx.platform.common.Ticker;
 import com.twx.platform.common.TimeFrame;
 import com.twx.platform.data.DataProvider;
@@ -11,6 +8,7 @@ import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.num.DoubleNum;
 
 import java.io.IOException;
 import java.net.URI;
@@ -23,17 +21,24 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern; // 导入正则表达式库
 
 /**
  * 从新浪财经获取A股历史数据的实现。
- * 注意：新浪接口可能不稳定，且返回的数据量有限制。
+ * 此版本不使用Gson库，而是通过正则表达式手动解析数据。
  */
 public class SinaDataProvider implements DataProvider {
 
     private static final String API_URL_FORMAT = "http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=%s&scale=240&ma=no&datalen=10000";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    // 定义一个正则表达式，用于从JSON片段中捕获K线数据
+    // 使用命名捕获组 (?<name>...) 使代码更易读
+    private static final Pattern SINA_BAR_PATTERN = Pattern.compile(
+            "\\{\"day\":\"(?<day>[^\"]+)\",\"open\":\"(?<open>[^\"]+)\",\"high\":\"(?<high>[^\"]+)\",\"low\":\"(?<low>[^\"]+)\",\"close\":\"(?<close>[^\"]+)\",\"volume\":\"(?<volume>[^\"]+)\"}"
+    );
 
     private final HttpClient httpClient;
 
@@ -44,66 +49,65 @@ public class SinaDataProvider implements DataProvider {
                 .build();
     }
 
+    // 在 SinaDataProvider.java 中
+
     @Override
     public BarSeries getHistoricalData(Ticker ticker, LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
-        // 新浪接口主要用于日线数据，这里暂时忽略 timeFrame
         String formattedUrl = String.format(API_URL_FORMAT, ticker.symbol());
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(formattedUrl))
-                .GET()
-                .build();
+        System.out.println("正在从以下URL获取数据: " + formattedUrl); // <-- 新增日志：打印请求的URL
+
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(formattedUrl)).GET().build();
 
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200 || response.body() == null || response.body().equalsIgnoreCase("null")) {
+
+//            System.out.println("API响应状态码: " + response.statusCode());
+//            System.out.println("API响应内容: " + response.body()); // 如果数据太多，可以先注释掉这行
+
+            if (response.statusCode() != 200 || response.body() == null || response.body().equalsIgnoreCase("null") || response.body().trim().isEmpty()) {
                 System.err.println("从新浪财经获取数据失败，股票代码: " + ticker.symbol() + ", 状态码: " + response.statusCode());
+                System.err.println("失败的响应内容是: " + response.body()); // <-- 新增日志：打印失败时的内容
                 return new BaseBarSeries(ticker.symbol());
             }
 
-            return parseJsonToBarSeries(response.body(), ticker.symbol(), startDate, endDate);
+            return parseResponseWithRegex(response.body(), ticker.symbol(), startDate, endDate);
 
         } catch (IOException | InterruptedException e) {
-            System.err.println("请求新浪财经API时发生错误: " + e.getMessage());
-            Thread.currentThread().interrupt(); // 恢复中断状态
+            System.err.println("请求新浪财经API时发生网络或线程错误: " + e.getMessage());
+            e.printStackTrace(); // <-- 新增日志：打印详细的异常堆栈
+            Thread.currentThread().interrupt();
             return new BaseBarSeries(ticker.symbol());
         }
     }
 
     /**
-     * 解析新浪财经返回的JSON字符串为BarSeries对象。
+     * 【已修改】使用正则表达式解析响应字符串为BarSeries对象。
      */
-    private BarSeries parseJsonToBarSeries(String jsonResponse, String tickerSymbol, LocalDate startDate, LocalDate endDate) {
-        BarSeries series = new BaseBarSeries(tickerSymbol);
-        JsonElement jsonElement = JsonParser.parseString(jsonResponse);
+    private BarSeries parseResponseWithRegex(String responseBody, String tickerSymbol, LocalDate startDate, LocalDate endDate) {
+        BarSeries series = new BaseBarSeries(tickerSymbol, DoubleNum::valueOf);
+        Matcher matcher = SINA_BAR_PATTERN.matcher(responseBody);
 
-        if (!jsonElement.isJsonArray()) {
-            System.err.println("无效的JSON格式，期望得到一个数组。");
-            return series;
-        }
+        // 循环查找所有匹配的K线数据
+        while (matcher.find()) {
+            try {
+                LocalDate date = LocalDate.parse(matcher.group("day"), DATE_FORMATTER);
 
-        JsonArray jsonArray = jsonElement.getAsJsonArray();
-        List<Bar> bars = new ArrayList<>();
+                // 筛选指定日期范围内的数据
+                if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
+                    double open = Double.parseDouble(matcher.group("open"));
+                    double high = Double.parseDouble(matcher.group("high"));
+                    double low = Double.parseDouble(matcher.group("low"));
+                    double close = Double.parseDouble(matcher.group("close"));
+                    double volume = Double.parseDouble(matcher.group("volume"));
 
-        for (JsonElement element : jsonArray) {
-            JsonObject barObject = element.getAsJsonObject();
-            LocalDate date = LocalDate.parse(barObject.get("day").getAsString(), DATE_FORMATTER);
-
-            // 筛选指定日期范围内的数据
-            if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
-                double open = barObject.get("open").getAsDouble();
-                double high = barObject.get("high").getAsDouble();
-                double low = barObject.get("low").getAsDouble();
-                double close = barObject.get("close").getAsDouble();
-                double volume = barObject.get("volume").getAsDouble();
-
-                ZonedDateTime endTime = date.atStartOfDay(ZoneId.systemDefault()).plusDays(1).minusNanos(1);
-
-                bars.add(new BaseBar(Duration.ofDays(1), endTime, open, high, low, close, volume));
+                    ZonedDateTime endTime = date.atStartOfDay(ZoneId.systemDefault()).plusDays(1).minusNanos(1);
+                    series.addBar(new BaseBar(Duration.ofDays(1), endTime, open, high, low, close, volume));
+                }
+            } catch (Exception e) {
+                System.err.println("解析单条K线数据时出错: " + matcher.group(0) + " | 错误: " + e.getMessage());
             }
         }
 
-        // 新浪接口返回的数据是按日期升序的，ta4j 需要的就是这个顺序
-        bars.forEach(series::addBar);
         return series;
     }
 }

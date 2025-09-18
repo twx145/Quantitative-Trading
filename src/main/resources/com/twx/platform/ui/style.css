@@ -1,0 +1,66 @@
+/* --- 通用线条样式 --- */
+.chart-series-line {
+    -fx-stroke-width: 1px; /* 所有线条默认宽度 */
+}
+/* 默认隐藏所有数据点的圆圈符号 */
+.chart-line-symbol {
+    -fx-background-color: transparent, transparent;
+}
+/* 默认图例符号的大小 */
+.chart-legend-item-symbol {
+    -fx-padding: 4px;
+}
+
+/* --- K线图样式 --- */
+.candlestick-node {
+    -fx-opacity: 0.8; /* 蜡烛半透明，更好看 */
+}
+.candlestick-line {
+    -fx-stroke: #555555; /* 影线颜色 */
+    -fx-stroke-width: 1px;
+}
+.candlestick-bar {
+    -fx-stroke-width: 1px;
+    -fx-stroke: black; /* 蜡烛边框 */
+}
+/* 阳线 (上涨) 的样式 */
+.candlestick-up .candlestick-bar {
+    -fx-fill: #26a69a; /* 绿色 */
+}
+/* 阴线 (下跌) 的样式 */
+.candlestick-down .candlestick-bar {
+    -fx-fill: #ef5350; /* 红色 */
+}
+
+
+/* --- 均线样式 --- */
+/* 短期均线 (SMA10) */
+.short-sma-series {
+    -fx-stroke: #ff9800; /* 橙色 */
+}
+/* 长期均线 (SMA30) */
+.long-sma-series {
+    -fx-stroke: #9c27b0; /* 紫色 */
+}
+
+/* --- 买卖点符号样式 (保持不变，但依然有效) --- */
+.buy-signal-symbol {
+    -fx-background-color: #4caf50, white; /* 鲜绿色 */
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px;
+    -fx-shape: "M5,0 L10,10 L0,10 Z"; /* 向上三角形 */
+}
+
+.sell-signal-symbol {
+    -fx-background-color: #f44336, white; /* 鲜红色 */
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 8px;
+    -fx-padding: 6px;
+    -fx-shape: "M0,0 L10,0 L5,10 Z"; /* 向下三角形 */
+}
+
+/* --- TableView 样式 --- */
+.table-view .column-header {
+    -fx-font-weight: bold;
+}
