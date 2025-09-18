@@ -16,36 +16,39 @@
     </properties>
 
     <dependencies>
+        <!-- ta4j 核心库，用于技术分析 -->
         <dependency>
             <groupId>org.ta4j</groupId>
             <artifactId>ta4j-core</artifactId>
             <version>0.15</version>
         </dependency>
+
+        <!-- SLF4J 日志门面，ta4j 会用到 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>2.0.7</version>
         </dependency>
+
+        <!-- 新增：Google Gson 库，用于解析新浪财经返回的 JSON 数据 -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
     </dependencies>
 
-    <!-- 这是解决问题的关键部分 -->
+    <!-- 仓库配置保持不变，已经很完善 -->
     <repositories>
-        <!-- 计划A: 用于下载绝大多数标准库，速度飞快 -->
         <repository>
             <id>aliyunmaven</id>
             <name>Aliyun Maven</name>
             <url>https://maven.aliyun.com/repository/public</url>
         </repository>
-        <!-- 计划B: 官方中央仓库，作为备用 -->
         <repository>
             <id>central</id>
             <name>Maven Central Repository</name>
             <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-        <!-- 计划C: JitPack仓库，专门用于下载yahoo-finance-api这个库 -->
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -55,11 +58,5 @@
             <name>Aliyun Maven</name>
             <url>https://maven.aliyun.com/repository/public</url>
         </pluginRepository>
-        <pluginRepository>
-            <id>central</id>
-            <name>Maven Central Repository</name>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </pluginRepository>
     </pluginRepositories>
-
 </project>

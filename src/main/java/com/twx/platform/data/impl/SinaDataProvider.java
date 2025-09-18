@@ -1,86 +1,109 @@
 package com.twx.platform.data.impl;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.twx.platform.common.Ticker;
 import com.twx.platform.common.TimeFrame;
 import com.twx.platform.data.DataProvider;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 从新浪财经获取实时数据快照的实现。
- * 注意：此接口仅返回最新的单条行情数据，不提供历史范围查询。
- * 因此，传入的 startDate 和 endDate 参数将被忽略。
- * 返回的 BarSeries 将只包含一个 Bar。
+ * 从新浪财经获取A股历史数据的实现。
+ * 注意：新浪接口可能不稳定，且返回的数据量有限制。
  */
 public class SinaDataProvider implements DataProvider {
 
-    private final OkHttpClient client = new OkHttpClient();
+    private static final String API_URL_FORMAT = "http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=%s&scale=240&ma=no&datalen=10000";
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private final HttpClient httpClient;
+
+    public SinaDataProvider() {
+        this.httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+    }
 
     @Override
     public BarSeries getHistoricalData(Ticker ticker, LocalDate startDate, LocalDate endDate, TimeFrame timeFrame) {
-        // 创建一个ta4j的BarSeries实例
-        BarSeries series = new BaseBarSeries(ticker.symbol() + "_SERIES");
-
-        // 新浪接口需要带前缀的股票代码, e.g., "sh600519"
-        Request request = new Request.Builder()
-                .url("http://hq.sinajs.cn/list=" + ticker.symbol())
+        // 新浪接口主要用于日线数据，这里暂时忽略 timeFrame
+        String formattedUrl = String.format(API_URL_FORMAT, ticker.symbol());
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(formattedUrl))
+                .GET()
                 .build();
 
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                System.err.println("从新浪获取数据失败: " + response);
-                return series; // 返回空的series
+        try {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200 || response.body() == null || response.body().equalsIgnoreCase("null")) {
+                System.err.println("从新浪财经获取数据失败，股票代码: " + ticker.symbol() + ", 状态码: " + response.statusCode());
+                return new BaseBarSeries(ticker.symbol());
             }
 
-            // 新浪接口使用GBK编码，必须正确转换
-            String responseBody = new String(Objects.requireNonNull(response.body()).bytes(), "GBK");
-            String data = responseBody.substring(responseBody.indexOf("\"") + 1, responseBody.lastIndexOf("\""));
-            String[] parts = data.split(",");
+            return parseJsonToBarSeries(response.body(), ticker.symbol(), startDate, endDate);
 
-            if (parts.length < 32) {
-                System.err.println("数据格式不正确或股票代码无效: " + ticker.symbol());
-                return series; // 返回空的series
-            }
+        } catch (IOException | InterruptedException e) {
+            System.err.println("请求新浪财经API时发生错误: " + e.getMessage());
+            Thread.currentThread().interrupt(); // 恢复中断状态
+            return new BaseBarSeries(ticker.symbol());
+        }
+    }
 
-            // --- 解析新浪数据并转换为ta4j的Bar ---
-            BigDecimal open = new BigDecimal(parts[1]);
-            BigDecimal high = new BigDecimal(parts[4]);
-            BigDecimal low = new BigDecimal(parts[5]);
-            BigDecimal close = new BigDecimal(parts[3]); // 当前价作为收盘价
-            BigDecimal volume = new BigDecimal(parts[8]);
+    /**
+     * 解析新浪财经返回的JSON字符串为BarSeries对象。
+     */
+    private BarSeries parseJsonToBarSeries(String jsonResponse, String tickerSymbol, LocalDate startDate, LocalDate endDate) {
+        BarSeries series = new BaseBarSeries(tickerSymbol);
+        JsonElement jsonElement = JsonParser.parseString(jsonResponse);
 
-            // 解析日期和时间
-            LocalDate barDate = LocalDate.parse(parts[30], DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            LocalTime barTime = LocalTime.parse(parts[31], DateTimeFormatter.ofPattern("HH:mm:ss"));
-            LocalDateTime barDateTime = LocalDateTime.of(barDate, barTime);
-
-            // 添加唯一的Bar到series中
-            series.addBar(
-                    barDateTime.atZone(ZoneId.systemDefault()),
-                    open,
-                    high,
-                    low,
-                    close,
-                    volume
-            );
-
-        } catch (IOException | NumberFormatException e) {
-            System.err.println("处理新浪数据时发生错误 for ticker " + ticker.symbol() + ": " + e.getMessage());
-            e.printStackTrace();
+        if (!jsonElement.isJsonArray()) {
+            System.err.println("无效的JSON格式，期望得到一个数组。");
+            return series;
         }
 
+        JsonArray jsonArray = jsonElement.getAsJsonArray();
+        List<Bar> bars = new ArrayList<>();
+
+        for (JsonElement element : jsonArray) {
+            JsonObject barObject = element.getAsJsonObject();
+            LocalDate date = LocalDate.parse(barObject.get("day").getAsString(), DATE_FORMATTER);
+
+            // 筛选指定日期范围内的数据
+            if (!date.isBefore(startDate) && !date.isAfter(endDate)) {
+                double open = barObject.get("open").getAsDouble();
+                double high = barObject.get("high").getAsDouble();
+                double low = barObject.get("low").getAsDouble();
+                double close = barObject.get("close").getAsDouble();
+                double volume = barObject.get("volume").getAsDouble();
+
+                ZonedDateTime endTime = date.atStartOfDay(ZoneId.systemDefault()).plusDays(1).minusNanos(1);
+
+                bars.add(new BaseBar(Duration.ofDays(1), endTime, open, high, low, close, volume));
+            }
+        }
+
+        // 新浪接口返回的数据是按日期升序的，ta4j 需要的就是这个顺序
+        bars.forEach(series::addBar);
         return series;
     }
 }
