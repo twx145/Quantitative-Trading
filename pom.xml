@@ -124,7 +124,7 @@
 <!--                                &ndash;&gt;-->
 <!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">-->
 <!--                                    &lt;!&ndash; ★★★ 注意这里的 mainClass 格式，不再需要模块名 ★★★ &ndash;&gt;-->
-<!--                                    <mainClass>com.twx.platform.ui.MainApp</mainClass>-->
+<!--                                    <mainClass>com.twx.platform.ui.Main</mainClass>-->
 <!--                                </transformer>-->
 <!--                            </transformers>-->
 <!--                        </configuration>-->
