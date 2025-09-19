@@ -95,7 +95,7 @@
                             <mainClass>com.twx.platform.ui.Main</mainClass>
 
                             <bundleJre>true</bundleJre>
-                            <generateInstaller>false</generateInstaller>
+                            <generateInstaller>true</generateInstaller>
                             <administratorRequired>false</administratorRequired>
                             <platform>windows</platform>
                         </configuration>

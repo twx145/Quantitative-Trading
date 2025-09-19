@@ -25,20 +25,25 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import org.ta4j.core.Bar;
 import org.ta4j.core.BarSeries;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UIController {
 
     // --- FXML UI Elements ---
-    @FXML private BorderPane rootPane; // Root pane for theme switching
+    @FXML private BorderPane rootPane;
     @FXML private TextField tickerField;
     @FXML private TextField initialCashField;
     @FXML private DatePicker startDatePicker;
@@ -61,7 +66,6 @@ public class UIController {
     @FXML private TextField rsiPeriodField;
     @FXML private TextField bbandsPeriodField;
 
-
     // Result Display
     @FXML private TextArea summaryArea;
     @FXML private TableView<Order> tradeLogTable;
@@ -77,16 +81,31 @@ public class UIController {
     private static final String FIXED_CASH_QUANTITY_SIZER = "按固定资金";
     private static final String FIXED_QUANTITY_SIZER = "按固定股数";
 
+    // --- Data Caching ---
+    private BacktestResult lastBacktestResult;
+    private final Map<String, List<XYChart.Series<String, Number>>> indicatorSeriesMap = new HashMap<>();
+    // ★ 新增：专门用于缓存K线图相关的系列数据
+    private final List<XYChart.Series<String, Number>> candlestickSeries = new ArrayList<>();
+
+
     @FXML
     public void initialize() {
-        // Initialize default values for UI controls
         startDatePicker.setValue(LocalDate.of(2023, 1, 1));
         endDatePicker.setValue(LocalDate.now());
-
         initializeTable();
         initializePositionSizerControls();
+        setupIndicatorListeners();
     }
 
+    private void setupIndicatorListeners() {
+        showCandlestickCheck.setOnAction(event -> redrawChart());
+        showMaCheck.setOnAction(event -> redrawChart());
+        showMacdCheck.setOnAction(event -> redrawChart());
+        showRsiCheck.setOnAction(event -> redrawChart());
+        showBbCheck.setOnAction(event -> redrawChart());
+    }
+
+    // ... (initializeTable, initializePositionSizerControls, handleThemeToggle 无需修改)
     private void initializeTable() {
         dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().timestamp().format(DATE_FORMATTER)));
         signalColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().signal()).asString());
@@ -103,18 +122,9 @@ public class UIController {
         positionSizerComboBox.getItems().addAll(CASH_PERCENTAGE_SIZER, FIXED_QUANTITY_SIZER, FIXED_CASH_QUANTITY_SIZER);
         positionSizerComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             switch (newValue) {
-                case CASH_PERCENTAGE_SIZER -> {
-                    sizerParamLabel.setText("资金比例(%):");
-                    sizerParamField.setText("15.0");
-                }
-                case FIXED_QUANTITY_SIZER -> {
-                    sizerParamLabel.setText("固定股数:");
-                    sizerParamField.setText("100");
-                }
-                case FIXED_CASH_QUANTITY_SIZER -> {
-                    sizerParamLabel.setText("固定资金:");
-                    sizerParamField.setText("1000");
-                }
+                case CASH_PERCENTAGE_SIZER -> { sizerParamLabel.setText("资金比例(%):"); sizerParamField.setText("15.0"); }
+                case FIXED_QUANTITY_SIZER -> { sizerParamLabel.setText("固定股数:"); sizerParamField.setText("100"); }
+                case FIXED_CASH_QUANTITY_SIZER -> { sizerParamLabel.setText("固定资金:"); sizerParamField.setText("1000"); }
             }
         });
         positionSizerComboBox.getSelectionModel().selectFirst();
@@ -132,6 +142,7 @@ public class UIController {
         }
     }
 
+
     @FXML
     private void handleRunBacktest() {
         runButton.setDisable(true);
@@ -141,20 +152,18 @@ public class UIController {
 
         new Thread(() -> {
             try {
-                // --- 1. Get parameters from UI ---
+                // ... (获取参数部分与之前相同)
                 String tickerSymbol = tickerField.getText();
                 LocalDate startDate = startDatePicker.getValue();
                 LocalDate endDate = endDatePicker.getValue();
                 double initialCash = Double.parseDouble(initialCashField.getText());
                 int shortMa = Integer.parseInt(shortMaField.getText());
                 int longMa = Integer.parseInt(longMaField.getText());
+                int rsiPeriod = Integer.parseInt(rsiPeriodField.getText());
+                int bbPeriod = Integer.parseInt(bbandsPeriodField.getText());
                 PositionSizer positionSizer = createPositionSizerFromUI();
-                if (positionSizer == null) {
-                    Platform.runLater(() -> summaryArea.setText("错误: 无效的投资策略参数。"));
-                    return;
-                }
 
-                // --- 2. Assemble and run backtest engine ---
+                // ... (运行回测部分与之前相同)
                 DataProvider dataProvider = new SinaDataProvider();
                 Ticker ticker = new Ticker(tickerSymbol);
                 BarSeries series = dataProvider.getHistoricalData(ticker, startDate, endDate, TimeFrame.DAILY);
@@ -165,30 +174,16 @@ public class UIController {
                 Portfolio portfolio = new BasicPortfolio(initialCash, 0.0003);
                 Strategy strategy = new MovingAverageCrossStrategy(series, shortMa, longMa);
                 BacktestEngine engine = new BacktestEngine(dataProvider, ticker, startDate, endDate, TimeFrame.DAILY);
-                BacktestResult result = engine.run(strategy, portfolio, positionSizer);
+                this.lastBacktestResult = engine.run(strategy, portfolio, positionSizer);
 
-                // --- 3. Prepare analysis techniques based on UI selections ---
-                List<AnalysisTechnique> techniques = new ArrayList<>();
-                if (showMaCheck.isSelected()) {
-                    techniques.add(new MovingAverageTechnique(shortMa, longMa));
-                }
-                if (showMacdCheck.isSelected()) {
-                    techniques.add(new MacdTechnique(12, 26, 9));
-                }
-                if (showRsiCheck.isSelected()) {
-                    int rsiPeriod = Integer.parseInt(rsiPeriodField.getText());
-                    techniques.add(new RsiTechnique(rsiPeriod));
-                }
-                if (showBbCheck.isSelected()) {
-                    int bbPeriod = Integer.parseInt(bbandsPeriodField.getText());
-                    techniques.add(new BollingerBandsTechnique(bbPeriod, 2.0));
-                }
+                // --- ★ 关键修改：一次性计算所有图表数据并缓存 ---
+                cacheAllChartData(series, shortMa, longMa, rsiPeriod, bbPeriod);
 
-                // --- 4. Update UI on JavaFX Application Thread ---
+                // --- 在UI线程更新 ---
                 Platform.runLater(() -> {
-                    updateChart(result, techniques);
-                    updateSummary(result);
-                    updateTradeLog(result);
+                    updateSummary(this.lastBacktestResult);
+                    updateTradeLog(this.lastBacktestResult);
+                    redrawChart(); // 首次绘制
                 });
 
             } catch (Exception e) {
@@ -198,6 +193,134 @@ public class UIController {
                 Platform.runLater(() -> runButton.setDisable(false));
             }
         }).start();
+    }
+
+    /**
+     * ★ 新增辅助方法：一次性计算并缓存所有可能用到的图表系列数据
+     */
+    private void cacheAllChartData(BarSeries series, int shortMa, int longMa, int rsiPeriod, int bbPeriod) {
+        // 1. 缓存K线图数据
+        candlestickSeries.clear();
+        candlestickSeries.addAll(createCandlestickSeries(series));
+
+        // 2. 缓存所有技术指标
+        indicatorSeriesMap.clear();
+        indicatorSeriesMap.put("MA", new MovingAverageTechnique(shortMa, longMa).calculate(series));
+        indicatorSeriesMap.put("MACD", new MacdTechnique(12, 26, 9).calculate(series));
+        indicatorSeriesMap.put("RSI", new RsiTechnique(rsiPeriod).calculate(series));
+        indicatorSeriesMap.put("BB", new BollingerBandsTechnique(bbPeriod, 2.0).calculate(series));
+    }
+
+    /**
+     * ★ 重构的核心：根据复选框状态和缓存数据重绘图表
+     */
+    private void redrawChart() {
+        priceChart.getData().clear();
+
+        if (lastBacktestResult == null || lastBacktestResult.series() == null) {
+            return;
+        }
+
+        // 1. 根据复选框决定是绘制K线图还是收盘价线
+        if (showCandlestickCheck.isSelected()) {
+            // 添加缓存的K线系列数据
+            if (!candlestickSeries.isEmpty()) {
+                priceChart.getData().addAll(candlestickSeries);
+            }
+        } else {
+            // 绘制传统的收盘价线 (从缓存的K线数据中提取)
+            // 我们从candlestickSeries的收盘价系列中提取数据，确保数据源一致
+            for(XYChart.Series<String, Number> series : candlestickSeries) {
+                if ("收盘价".equals(series.getName())) {
+                    priceChart.getData().add(series);
+                    break;
+                }
+            }
+        }
+
+        // 2. 添加选中的技术指标
+        if (showMaCheck.isSelected() && indicatorSeriesMap.containsKey("MA")) {
+            priceChart.getData().addAll(indicatorSeriesMap.get("MA"));
+        }
+        if (showMacdCheck.isSelected() && indicatorSeriesMap.containsKey("MACD")) {
+            priceChart.getData().addAll(indicatorSeriesMap.get("MACD"));
+        }
+        if (showRsiCheck.isSelected() && indicatorSeriesMap.containsKey("RSI")) {
+            priceChart.getData().addAll(indicatorSeriesMap.get("RSI"));
+        }
+        if (showBbCheck.isSelected() && indicatorSeriesMap.containsKey("BB")) {
+            priceChart.getData().addAll(indicatorSeriesMap.get("BB"));
+        }
+
+        // 3. 总是添加交易点连线
+        if (lastBacktestResult.executedOrders() != null && !lastBacktestResult.executedOrders().isEmpty()) {
+            priceChart.getData().add(createTradeSignalSeries("交易点连线", lastBacktestResult.executedOrders()));
+        }
+
+        // 4. 动态调整Y轴
+        adjustYAxisRange();
+    }
+
+    /**
+     * ★ 全新方法：创建模拟K线图的数据系列
+     * 返回一个包含高、开、收、低四条线的列表
+     */
+    private List<XYChart.Series<String, Number>> createCandlestickSeries(BarSeries series) {
+        XYChart.Series<String, Number> highSeries = new XYChart.Series<>();
+        highSeries.setName("最高价");
+        XYChart.Series<String, Number> openSeries = new XYChart.Series<>();
+        openSeries.setName("开盘价");
+        XYChart.Series<String, Number> closeSeries = new XYChart.Series<>();
+        closeSeries.setName("收盘价");
+        XYChart.Series<String, Number> lowSeries = new XYChart.Series<>();
+        lowSeries.setName("最低价");
+
+        // 为每个系列添加CSS类，以便在样式表中定义不同颜色
+        // 我们利用默认颜色序列来简化CSS
+        Platform.runLater(() -> {
+            if(highSeries.getNode() != null) highSeries.getNode().getStyleClass().add("default-color0");
+            if(openSeries.getNode() != null) openSeries.getNode().getStyleClass().add("default-color1");
+            if(closeSeries.getNode() != null) closeSeries.getNode().getStyleClass().add("default-color2");
+            if(lowSeries.getNode() != null) lowSeries.getNode().getStyleClass().add("default-color3");
+        });
+
+
+        for (int i = 0; i < series.getBarCount(); i++) {
+            Bar bar = series.getBar(i);
+            String date = bar.getEndTime().toLocalDate().toString();
+
+            highSeries.getData().add(new XYChart.Data<>(date, bar.getHighPrice().doubleValue()));
+            openSeries.getData().add(new XYChart.Data<>(date, bar.getOpenPrice().doubleValue()));
+            closeSeries.getData().add(new XYChart.Data<>(date, bar.getClosePrice().doubleValue()));
+            lowSeries.getData().add(new XYChart.Data<>(date, bar.getLowPrice().doubleValue()));
+        }
+
+        return List.of(highSeries, openSeries, closeSeries, lowSeries);
+    }
+
+    private void adjustYAxisRange() {
+        Platform.runLater(() -> {
+            double minPrice = Double.MAX_VALUE;
+            double maxPrice = Double.MIN_VALUE;
+
+            for (XYChart.Series<String, Number> s : priceChart.getData()) {
+                // 排除交易点连线，因为它可能包含非价格数据或拉低范围
+                if ("交易点连线".equals(s.getName())) continue;
+                for (XYChart.Data<String, Number> d : s.getData()) {
+                    double yValue = d.getYValue().doubleValue();
+                    if (yValue < minPrice) minPrice = yValue;
+                    if (yValue > maxPrice) maxPrice = yValue;
+                }
+            }
+
+            if (minPrice != Double.MAX_VALUE) {
+                NumberAxis yAxis = (NumberAxis) priceChart.getYAxis();
+                yAxis.setAutoRanging(false);
+                double padding = (maxPrice - minPrice) * 0.05;
+                yAxis.setLowerBound(Math.floor(minPrice - padding));
+                yAxis.setUpperBound(Math.ceil(maxPrice + padding));
+            }
+        });
     }
 
     private PositionSizer createPositionSizerFromUI() {
@@ -226,77 +349,23 @@ public class UIController {
         tradeLogTable.getItems().addAll(result.executedOrders());
     }
 
-    /**
-     * Updates the chart with price, selected indicators, and trade signals.
-     * This version relies on the CSS default color series (.default-colorN) for indicator styling,
-     * which is simple and robust.
-     */
-    private void updateChart(BacktestResult result, List<AnalysisTechnique> techniques) {
-        priceChart.getData().clear();
-        BarSeries series = result.series();
-        if (series.isEmpty()) return;
-
-        // The order of adding series matters. CSS will apply .default-color0, .default-color1, etc.
-        // in the order the series are added to the chart.
-
-        // 1. Add the base price series. It will get the `.default-color0` style.
-        if (showCandlestickCheck.isSelected()) {
-            // If Candlestick is chosen, add its series
-            priceChart.getData().addAll(new CandlestickTechnique().calculate(series));
-        } else {
-            // Otherwise, add the simple close price line
-            priceChart.getData().add(createClosePriceSeries(series));
-        }
-
-        // 2. Add all selected technical analysis indicator series
-        for (AnalysisTechnique technique : techniques) {
-            priceChart.getData().addAll(technique.calculate(series));
-        }
-
-        // 3. Add buy and sell signal series. They have their own specific CSS classes.
-        XYChart.Series<String, Number> buySignalsSeries = createSignalSeries("买入点", result.executedOrders(), TradeSignal.BUY);
-        XYChart.Series<String, Number> sellSignalsSeries = createSignalSeries("卖出点", result.executedOrders(), TradeSignal.SELL);
-
-        addCssListenerToSeries(buySignalsSeries, "buy-signal-symbol");
-        addCssListenerToSeries(sellSignalsSeries, "sell-signal-symbol");
-
-        priceChart.getData().addAll(buySignalsSeries, sellSignalsSeries);
-    }
-
-    private XYChart.Series<String, Number> createClosePriceSeries(BarSeries series) {
-        XYChart.Series<String, Number> dataSeries = new XYChart.Series<>();
-        dataSeries.setName("收盘价");
-        for (int i = 0; i < series.getBarCount(); i++) {
-            String date = series.getBar(i).getEndTime().toLocalDate().toString();
-            double closePrice = series.getBar(i).getClosePrice().doubleValue();
-            dataSeries.getData().add(new XYChart.Data<>(date, closePrice));
-        }
-        return dataSeries;
-    }
-
-    private XYChart.Series<String, Number> createSignalSeries(String name, Iterable<Order> orders, TradeSignal signalType) {
+    private XYChart.Series<String, Number> createTradeSignalSeries(String name, List<Order> executedOrders) {
         XYChart.Series<String, Number> dataSeries = new XYChart.Series<>();
         dataSeries.setName(name);
-        for (Order order : orders) {
-            if (order.signal() == signalType) {
-                String date = order.timestamp().toLocalDate().toString();
-                dataSeries.getData().add(new XYChart.Data<>(date, order.price()));
+        dataSeries.nodeProperty().addListener((obs, oldNode, newNode) -> {
+            if (newNode != null) {
+                newNode.getStyleClass().add("trade-signal-series");
             }
+        });
+        for (Order order : executedOrders) {
+            String date = order.timestamp().toLocalDate().toString();
+            XYChart.Data<String, Number> data = new XYChart.Data<>(date, order.price());
+            String symbolCssClass = (order.signal() == TradeSignal.BUY) ? "buy-signal-symbol" : "sell-signal-symbol";
+            StackPane symbolNode = new StackPane();
+            symbolNode.getStyleClass().add(symbolCssClass);
+            data.setNode(symbolNode);
+            dataSeries.getData().add(data);
         }
         return dataSeries;
-    }
-
-    /**
-     * Robustly applies a CSS class to a series' data points by listening for when their nodes are created.
-     * This is the best practice for styling chart data points.
-     */
-    private void addCssListenerToSeries(XYChart.Series<String, Number> series, String cssClass) {
-        for (XYChart.Data<String, Number> data : series.getData()) {
-            data.nodeProperty().addListener((obs, oldNode, newNode) -> {
-                if (newNode != null) {
-                    newNode.getStyleClass().add(cssClass);
-                }
-            });
-        }
     }
 }

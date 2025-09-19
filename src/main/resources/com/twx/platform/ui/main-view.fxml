@@ -4,41 +4,18 @@
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.control.TableColumn?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 
-<!--
-  根节点设置:
-  1. fx:id="rootPane" - 用于Java代码控制主题切换
-  2. stylesheets="@style.css" - 直接加载CSS文件，最稳定的方式
-  3. styleClass="body" - 应用我们在CSS中定义的全局背景和字体
--->
 <BorderPane fx:id="rootPane" styleClass="body" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.twx.platform.ui.UIController">
     <top>
         <VBox spacing="10.0">
             <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
             </padding>
-            <HBox alignment="CENTER_LEFT" spacing="15.0">
-                <Label text="量化回测平台">
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <Label text="量化交易回测平台">
                     <font>
                         <Font name="System Bold" size="18.0" />
                     </font>
@@ -48,10 +25,11 @@
             <GridPane hgap="10.0" vgap="10.0">
                 <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
+                    <!-- ★★★ 关键修改：hgrow="ALWAYS" 让输入框自动填满 ★★★ -->
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="200.0" />
-                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                 </columnConstraints>
                 <rowConstraints>
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -63,22 +41,20 @@
                 <Label text="初始资金:" GridPane.columnIndex="2" />
                 <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="3" />
                 <Label text="开始日期:" GridPane.rowIndex="1" />
-                <DatePicker fx:id="startDatePicker" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <DatePicker fx:id="startDatePicker" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                <DatePicker fx:id="endDatePicker" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-
+                <DatePicker fx:id="endDatePicker" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                 <Label text="仓位策略:" GridPane.rowIndex="2" />
-                <ComboBox fx:id="positionSizerComboBox" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                <ComboBox fx:id="positionSizerComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                 <Label fx:id="sizerParamLabel" text="参数:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
                 <TextField fx:id="sizerParamField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-
                 <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="4" GridPane.rowIndex="2" />
             </GridPane>
         </VBox>
     </top>
     <center>
-        <!-- createSymbols="false" 全局禁用默认的数据点圆圈，让CSS控制更干净 -->
-        <LineChart fx:id="priceChart" animated="false" createSymbols="false" title="股价走势与交易点">
+        <!-- ★★★ 关键修改：移除 createSymbols="false" ★★★ -->
+        <LineChart fx:id="priceChart" animated="false" title="股价走势与交易点">
             <xAxis>
                 <CategoryAxis side="BOTTOM" label="日期" />
             </xAxis>
@@ -89,7 +65,7 @@
     </center>
     <right>
         <TitledPane collapsible="false" text="图表分析选项">
-            <VBox prefWidth="220.0" spacing="10.0">
+            <VBox prefWidth="280.0" spacing="10.0">
                 <padding>
                     <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                 </padding>
@@ -97,10 +73,8 @@
                 <CheckBox fx:id="showCandlestickCheck" text="显示K线图(模拟)" />
                 <Separator prefWidth="200.0" />
                 <Label style="-fx-font-weight: bold;" text="技术指标" />
-
-                <!-- 均线选项与参数输入框整合 -->
                 <VBox spacing="5.0">
-                    <CheckBox fx:id="showMaCheck" selected="true" text="移动平均线(MA)" />
+                    <CheckBox fx:id="showMaCheck" text="移动平均线(MA)" />
                     <HBox alignment="CENTER_LEFT" spacing="5.0">
                         <padding>
                             <Insets left="20.0" />
@@ -111,11 +85,9 @@
                         <TextField fx:id="longMaField" prefWidth="45.0" text="30" />
                     </HBox>
                 </VBox>
-
                 <CheckBox fx:id="showMacdCheck" text="MACD指标" />
                 <CheckBox fx:id="showRsiCheck" text="RSI指标" />
                 <CheckBox fx:id="showBbCheck" text="布林带(BBands)" />
-
                 <Separator prefWidth="200.0" />
                 <Label style="-fx-font-weight: bold;" text="指标参数" />
                 <GridPane hgap="5.0" vgap="5.0">
@@ -123,10 +95,6 @@
                         <ColumnConstraints halignment="RIGHT" prefWidth="80.0" />
                         <ColumnConstraints />
                     </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" />
-                    </rowConstraints>
                     <Label text="RSI 周期:" GridPane.rowIndex="0" />
                     <TextField fx:id="rsiPeriodField" text="14" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                     <Label text="BBands 周期:" GridPane.rowIndex="1" />

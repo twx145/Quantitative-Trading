@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Quantitive-Trading Theme - FINAL CORRECTED VERSION (Variable Names Fixed)
+   Quantitive-Trading Theme - FINAL VERSION
    ========================================================================== */
 
-/* --- 1. CSS变量定义 (所有变量都已重命名，避免与CSS属性冲突) --- */
+/* --- 1. CSS变量定义 --- */
 .root {
     -fx-theme-base-bg: #f4f5f7;
     -fx-theme-control-bg: #ffffff;
@@ -13,6 +13,8 @@
     -fx-theme-accent-hover: #2980b9;
     -fx-theme-border: #dcdfe6;
     -fx-theme-chart-grid: #ecf0f1;
+    -fx-theme-scrollbar-thumb: #bdc3c7;
+    -fx-theme-scrollbar-thumb-hover: #95a5a6;
 
     -fx-theme-price-color: #3498db;
     -fx-theme-positive-color: #26a69a;
@@ -35,44 +37,62 @@
     -fx-theme-accent-hover: #4aa3df;
     -fx-theme-border: #3e5166;
     -fx-theme-chart-grid: #3e5166;
+    -fx-theme-scrollbar-thumb: #566573;
+    -fx-theme-scrollbar-thumb-hover: #7F8C8D;
 }
 
-/* --- 全局样式 --- */
-.body { -fx-background-color: -fx-theme-base-bg; -fx-font-family: "Microsoft YaHei UI", sans-serif; -fx-font-size: 13px; }
+/* --- 全局与容器样式 --- */
+.body, .vbox, .hbox, .grid-pane, .split-pane, .split-pane > .split-pane-divider { -fx-background-color: -fx-theme-base-bg; }
+.body { -fx-font-family: "Microsoft YaHei UI", sans-serif; -fx-font-size: 13px; }
 
 /* --- 控件样式 --- */
 .label { -fx-text-fill: -fx-theme-text-primary; }
-
 .button, .toggle-button { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 6px 12px; }
 .button:hover, .toggle-button:hover { -fx-background-color: -fx-theme-accent-hover; -fx-cursor: hand; }
 .toggle-button:selected { -fx-background-color: -fx-theme-accent-hover; }
 
-.text-field, .combo-box, .date-picker .text-field, .text-area { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; -fx-border-color: -fx-theme-border; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px; }
+.text-field, .combo-box, .date-picker, .text-area { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; -fx-border-color: -fx-theme-border; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px; }
 .text-field:focused, .combo-box:focused, .date-picker:focused, .text-area:focused { -fx-border-color: -fx-theme-accent; }
+.date-picker > .text-field { -fx-background-color: -fx-theme-control-bg; }
 .text-area .content { -fx-background-color: -fx-theme-control-bg; }
-
-.combo-box .list-cell { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; }
-.combo-box .list-cell:hover { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
 
 .check-box .box { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; -fx-border-radius: 3px; }
 .check-box:selected .mark { -fx-background-color: -fx-theme-accent; }
 .check-box { -fx-text-fill: -fx-theme-text-primary; }
 
 .separator .line { -fx-border-color: -fx-theme-border; -fx-border-width: 1 0 0 0; }
-
-.titled-pane > .title { -fx-background-color: -fx-theme-base-bg; -fx-border-color: -fx-theme-border; }
+.titled-pane { -fx-border-color: -fx-theme-border; }
+.titled-pane > .title { -fx-background-color: -fx-theme-base-bg; }
 .titled-pane > .title > .text { -fx-fill: -fx-theme-text-primary; }
-.titled-pane > .content { -fx-background-color: -fx-theme-base-bg; -fx-border-color: -fx-theme-border; }
+.titled-pane > .content { -fx-background-color: -fx-theme-base-bg; -fx-border-color: transparent; }
 
-/* --- TableView 样式 --- */
+/* --- ComboBox 和 DatePicker 弹出窗口样式 --- */
+.combo-box-popup .list-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
+.combo-box-popup .list-view .list-cell { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; }
+.combo-box-popup .list-view .list-cell:hover { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
+.date-picker-popup { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
+.date-picker-popup .month-year-pane { -fx-background-color: -fx-theme-base-bg; }
+.date-picker-popup .day-cell { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; }
+.date-picker-popup .day-cell:hover { -fx-background-color: -fx-theme-accent-hover; -fx-text-fill: -fx-theme-text-on-accent; }
+.date-picker-popup .day-cell.today { -fx-border-color: -fx-theme-accent; }
+.date-picker-popup .spinner .label { -fx-text-fill: -fx-theme-text-primary; }
+
+/* --- TableView 和 ScrollBar 样式 --- */
 .table-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
 .table-view .column-header-background { -fx-background-color: -fx-theme-base-bg; }
+.table-view .column-header, .table-view .filler { -fx-background-color: -fx-theme-base-bg; -fx-border-color: transparent -fx-theme-border -fx-theme-border transparent; }
 .table-view .column-header .label { -fx-text-fill: -fx-theme-text-primary; -fx-font-weight: bold; }
 .table-view .table-cell { -fx-text-fill: -fx-theme-text-primary; -fx-border-color: transparent; -fx-padding: 8px; }
 .table-view .table-row-cell { -fx-background-color: -fx-theme-control-bg; }
 .table-view .table-row-cell:odd { -fx-background-color: -fx-theme-base-bg; }
 .table-view .table-row-cell:hover { -fx-background-color: -fx-theme-accent; }
 .table-view .table-row-cell:hover .table-cell { -fx-text-fill: -fx-theme-text-on-accent; }
+
+.scroll-bar:vertical, .scroll-bar:horizontal { -fx-background-color: transparent; }
+.scroll-bar .thumb { -fx-background-color: -fx-theme-scrollbar-thumb; -fx-background-radius: 8px; }
+.scroll-bar .thumb:hover { -fx-background-color: -fx-theme-scrollbar-thumb-hover; }
+.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: ""; -fx-padding: 0; }
 
 /* --- Chart Styles --- */
 .chart { -fx-background-color: -fx-theme-control-bg; -fx-padding: 5px; }
@@ -81,7 +101,12 @@
 .axis-label { -fx-text-fill: -fx-theme-text-primary; }
 .axis { -fx-tick-label-fill: -fx-theme-text-secondary; }
 .chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: -fx-theme-chart-grid; }
+.chart-legend { -fx-background-color: -fx-theme-control-bg; }
+.chart-legend .label { -fx-text-fill: -fx-theme-text-primary; }
 
+.chart-series-line { -fx-stroke-width: 1.5px; }
+
+/* Indicator line colors */
 .default-color0.chart-series-line { -fx-stroke: -fx-theme-price-color; }
 .default-color1.chart-series-line { -fx-stroke: -fx-theme-ma-short-color; }
 .default-color2.chart-series-line { -fx-stroke: -fx-theme-ma-long-color; }
@@ -92,7 +117,28 @@
 .default-color7.chart-series-line { -fx-stroke: -fx-theme-bb-middle-color; }
 .default-color8.chart-series-line { -fx-stroke: -fx-theme-bb-upper-lower-color; -fx-stroke-dash-array: 4 4;}
 
-.chart-line-symbol { -fx-background-color: transparent, transparent; }
+/* ★ 1. Hide default symbols (circles) for ALL series. Our custom nodes won't be affected. */
+.chart-line-symbol {
+    -fx-background-color: transparent, transparent;
+}
 
-.buy-signal-symbol { -fx-shape: "M5,0 L10,10 L0,10 Z"; -fx-background-color: -fx-theme-positive-color; -fx-padding: 7px; }
-.sell-signal-symbol { -fx-shape: "M0,0 L10,0 L5,10 Z"; -fx-background-color: -fx-theme-negative-color; -fx-padding: 7px; }
+/* ★ 2. Define the style for our custom signal symbols (triangles). */
+.buy-signal-symbol {
+    -fx-shape: "M5,0 L10,10 L0,10 Z"; /* Upward triangle */
+    -fx-background-color: -fx-theme-positive-color;
+    -fx-padding: 7px;
+    -fx-background-insets: 0;
+}
+.sell-signal-symbol {
+    -fx-shape: "M0,0 L10,0 L5,10 Z"; /* Downward triangle */
+    -fx-background-color: -fx-theme-negative-color;
+    -fx-padding: 7px;
+    -fx-background-insets: 0;
+}
+
+/* ★ 3. Define the style for the line that connects the trade signals. */
+.trade-signal-series.chart-series-line {
+    -fx-stroke: #7f8c8d; /* A neutral gray color */
+    -fx-stroke-width: 1px;
+    -fx-stroke-dash-array: 3 5; /* A dashed line style to make it less prominent */
+}
