@@ -64,6 +64,22 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <executions>
+                    <execution>
+                        <!-- Default configuration for running with "mvn javafx:run" -->
+                        <id>default-cli</id>
+                        <configuration>
+                            <!-- 你的主应用程序类 -->
+                            <mainClass>com.twx.platform.ui.MainApp</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- 关键：用于创建包含所有依赖的 "fat JAR" 的插件 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

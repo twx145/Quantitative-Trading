@@ -12,7 +12,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApp.class.getResource("main-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 1400, 800); // 增大默认窗口尺寸
+        Scene scene = new Scene(fxmlLoader.load(), 1500, 900); // 增大默认窗口尺寸
 
         // 加载新的暗色主题CSS
         URL cssUrl = getClass().getResource("dark-theme.css");
