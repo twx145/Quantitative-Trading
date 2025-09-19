@@ -1,66 +1,98 @@
-/* --- 通用线条样式 --- */
-.chart-series-line {
-    -fx-stroke-width: 1px; /* 所有线条默认宽度 */
-}
-/* 默认隐藏所有数据点的圆圈符号 */
-.chart-line-symbol {
-    -fx-background-color: transparent, transparent;
-}
-/* 默认图例符号的大小 */
-.chart-legend-item-symbol {
-    -fx-padding: 4px;
+/* ==========================================================================
+   Quantitive-Trading Theme - FINAL CORRECTED VERSION (Variable Names Fixed)
+   ========================================================================== */
+
+/* --- 1. CSS变量定义 (所有变量都已重命名，避免与CSS属性冲突) --- */
+.root {
+    -fx-theme-base-bg: #f4f5f7;
+    -fx-theme-control-bg: #ffffff;
+    -fx-theme-text-primary: #2c3e50;
+    -fx-theme-text-secondary: #7f8c8d;
+    -fx-theme-text-on-accent: #ffffff;
+    -fx-theme-accent: #3498db;
+    -fx-theme-accent-hover: #2980b9;
+    -fx-theme-border: #dcdfe6;
+    -fx-theme-chart-grid: #ecf0f1;
+
+    -fx-theme-price-color: #3498db;
+    -fx-theme-positive-color: #26a69a;
+    -fx-theme-negative-color: #ef5350;
+    -fx-theme-ma-short-color: #ffa726;
+    -fx-theme-ma-long-color: #ab47bc;
+    -fx-theme-macd-color: #29b6f6;
+    -fx-theme-macd-signal-color: #ff7043;
+    -fx-theme-rsi-color: #66bb6a;
+    -fx-theme-bb-upper-lower-color: #78909c;
+    -fx-theme-bb-middle-color: #ffca28;
 }
 
-/* --- K线图样式 --- */
-.candlestick-node {
-    -fx-opacity: 0.8; /* 蜡烛半透明，更好看 */
-}
-.candlestick-line {
-    -fx-stroke: #555555; /* 影线颜色 */
-    -fx-stroke-width: 1px;
-}
-.candlestick-bar {
-    -fx-stroke-width: 1px;
-    -fx-stroke: black; /* 蜡烛边框 */
-}
-/* 阳线 (上涨) 的样式 */
-.candlestick-up .candlestick-bar {
-    -fx-fill: #26a69a; /* 绿色 */
-}
-/* 阴线 (下跌) 的样式 */
-.candlestick-down .candlestick-bar {
-    -fx-fill: #ef5350; /* 红色 */
+.theme-dark {
+    -fx-theme-base-bg: #233140;
+    -fx-theme-control-bg: #2c3e50;
+    -fx-theme-text-primary: #ecf0f1;
+    -fx-theme-text-secondary: #95a5a6;
+    -fx-theme-accent: #3498db;
+    -fx-theme-accent-hover: #4aa3df;
+    -fx-theme-border: #3e5166;
+    -fx-theme-chart-grid: #3e5166;
 }
 
+/* --- 全局样式 --- */
+.body { -fx-background-color: -fx-theme-base-bg; -fx-font-family: "Microsoft YaHei UI", sans-serif; -fx-font-size: 13px; }
 
-/* --- 均线样式 --- */
-/* 短期均线 (SMA10) */
-.short-sma-series {
-    -fx-stroke: #ff9800; /* 橙色 */
-}
-/* 长期均线 (SMA30) */
-.long-sma-series {
-    -fx-stroke: #9c27b0; /* 紫色 */
-}
+/* --- 控件样式 --- */
+.label { -fx-text-fill: -fx-theme-text-primary; }
 
-/* --- 买卖点符号样式 (保持不变，但依然有效) --- */
-.buy-signal-symbol {
-    -fx-background-color: #4caf50, white; /* 鲜绿色 */
-    -fx-background-insets: 0, 2;
-    -fx-background-radius: 8px;
-    -fx-padding: 6px;
-    -fx-shape: "M5,0 L10,10 L0,10 Z"; /* 向上三角形 */
-}
+.button, .toggle-button { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 6px 12px; }
+.button:hover, .toggle-button:hover { -fx-background-color: -fx-theme-accent-hover; -fx-cursor: hand; }
+.toggle-button:selected { -fx-background-color: -fx-theme-accent-hover; }
 
-.sell-signal-symbol {
-    -fx-background-color: #f44336, white; /* 鲜红色 */
-    -fx-background-insets: 0, 2;
-    -fx-background-radius: 8px;
-    -fx-padding: 6px;
-    -fx-shape: "M0,0 L10,0 L5,10 Z"; /* 向下三角形 */
-}
+.text-field, .combo-box, .date-picker .text-field, .text-area { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; -fx-border-color: -fx-theme-border; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px; }
+.text-field:focused, .combo-box:focused, .date-picker:focused, .text-area:focused { -fx-border-color: -fx-theme-accent; }
+.text-area .content { -fx-background-color: -fx-theme-control-bg; }
+
+.combo-box .list-cell { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; }
+.combo-box .list-cell:hover { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
+
+.check-box .box { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; -fx-border-radius: 3px; }
+.check-box:selected .mark { -fx-background-color: -fx-theme-accent; }
+.check-box { -fx-text-fill: -fx-theme-text-primary; }
+
+.separator .line { -fx-border-color: -fx-theme-border; -fx-border-width: 1 0 0 0; }
+
+.titled-pane > .title { -fx-background-color: -fx-theme-base-bg; -fx-border-color: -fx-theme-border; }
+.titled-pane > .title > .text { -fx-fill: -fx-theme-text-primary; }
+.titled-pane > .content { -fx-background-color: -fx-theme-base-bg; -fx-border-color: -fx-theme-border; }
 
 /* --- TableView 样式 --- */
-.table-view .column-header {
-    -fx-font-weight: bold;
-}
+.table-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
+.table-view .column-header-background { -fx-background-color: -fx-theme-base-bg; }
+.table-view .column-header .label { -fx-text-fill: -fx-theme-text-primary; -fx-font-weight: bold; }
+.table-view .table-cell { -fx-text-fill: -fx-theme-text-primary; -fx-border-color: transparent; -fx-padding: 8px; }
+.table-view .table-row-cell { -fx-background-color: -fx-theme-control-bg; }
+.table-view .table-row-cell:odd { -fx-background-color: -fx-theme-base-bg; }
+.table-view .table-row-cell:hover { -fx-background-color: -fx-theme-accent; }
+.table-view .table-row-cell:hover .table-cell { -fx-text-fill: -fx-theme-text-on-accent; }
+
+/* --- Chart Styles --- */
+.chart { -fx-background-color: -fx-theme-control-bg; -fx-padding: 5px; }
+.chart-plot-background { -fx-background-color: -fx-theme-control-bg; }
+.chart-title { -fx-text-fill: -fx-theme-text-primary; -fx-font-size: 1.2em; }
+.axis-label { -fx-text-fill: -fx-theme-text-primary; }
+.axis { -fx-tick-label-fill: -fx-theme-text-secondary; }
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: -fx-theme-chart-grid; }
+
+.default-color0.chart-series-line { -fx-stroke: -fx-theme-price-color; }
+.default-color1.chart-series-line { -fx-stroke: -fx-theme-ma-short-color; }
+.default-color2.chart-series-line { -fx-stroke: -fx-theme-ma-long-color; }
+.default-color3.chart-series-line { -fx-stroke: -fx-theme-macd-color; }
+.default-color4.chart-series-line { -fx-stroke: -fx-theme-macd-signal-color; }
+.default-color5.chart-series-line { -fx-stroke: -fx-theme-rsi-color; }
+.default-color6.chart-series-line { -fx-stroke: -fx-theme-bb-upper-lower-color; -fx-stroke-dash-array: 4 4;}
+.default-color7.chart-series-line { -fx-stroke: -fx-theme-bb-middle-color; }
+.default-color8.chart-series-line { -fx-stroke: -fx-theme-bb-upper-lower-color; -fx-stroke-dash-array: 4 4;}
+
+.chart-line-symbol { -fx-background-color: transparent, transparent; }
+
+.buy-signal-symbol { -fx-shape: "M5,0 L10,10 L0,10 Z"; -fx-background-color: -fx-theme-positive-color; -fx-padding: 7px; }
+.sell-signal-symbol { -fx-shape: "M0,0 L10,0 L5,10 Z"; -fx-background-color: -fx-theme-negative-color; -fx-padding: 7px; }
