@@ -18,7 +18,6 @@ public class BasicPortfolio implements Portfolio {
     private double cash;
     private final Map<String, Double> holdings; // Key: Ticker Symbol, Value: Quantity
     private double totalValue;
-    private final List<String> tradeLog;
 
     /**
      * 构造函数
@@ -31,46 +30,36 @@ public class BasicPortfolio implements Portfolio {
         this.commissionRate = commissionRate;
         this.holdings = new HashMap<>();
         this.totalValue = initialCash;
-        this.tradeLog = new ArrayList<>();
     }
 
     @Override
-    public void processOrder(Order order) {
+    public boolean processOrder(Order order) {
         String symbol = order.ticker().symbol();
         double quantity = order.quantity();
         double price = order.price();
         double grossValue = quantity * price; // 交易总额（毛值）
         double commission = grossValue * commissionRate; // 手续费
-        String logMessage = "";
 
         if (order.signal() == TradeSignal.BUY) {
             double totalCost = grossValue + commission; // 买入总花费
             if (cash >= totalCost) {
                 cash -= totalCost;
                 holdings.put(symbol, holdings.getOrDefault(symbol, 0.0) + quantity);
-                logMessage = String.format("%s: 买入 %s, 数量 %.2f, 价格 %.2f, 手续费 %.2f",
-                        order.timestamp().toLocalDate(), symbol, quantity, price, commission);
+                return true;
             } else {
-                logMessage = String.format("%s: 现金不足 (需要 %.2f, 只有 %.2f)，无法买入！",
-                        order.timestamp().toLocalDate(), totalCost, cash);
+                return false;
             }
         } else if (order.signal() == TradeSignal.SELL) {
             if (holdings.getOrDefault(symbol, 0.0) >= quantity) {
                 double totalProceeds = grossValue - commission; // 卖出总收入
                 cash += totalProceeds;
                 holdings.put(symbol, holdings.get(symbol) - quantity);
-                logMessage = String.format("%s: 卖出 %s, 数量 %.2f, 价格 %.2f, 手续费 %.2f",
-                        order.timestamp().toLocalDate(), symbol, quantity, price, commission);
+                return true;
             } else {
-                logMessage = String.format("%s: 持仓不足 (需要 %.2f, 只有 %.2f)，无法卖出！",
-                        order.timestamp().toLocalDate(), quantity, holdings.getOrDefault(symbol, 0.0));
+                return false;
             }
         }
-
-        if (!logMessage.isEmpty()) {
-            System.out.println(logMessage); // 仍然在控制台打印一份，方便调试
-            tradeLog.add(logMessage);       // 将日志消息添加到列表中
-        }
+        return false;
     }
 
     @Override
@@ -90,27 +79,6 @@ public class BasicPortfolio implements Portfolio {
     @Override
     public double getTotalValue() {
         return totalValue;
-    }
-
-    @Override
-    public void printSummary() {
-        System.out.println("\n--- 投资组合总结 ---");
-        System.out.printf("初始资金: %,.2f\n", initialCash);
-        System.out.printf("最终总价值: %,.2f\n", totalValue);
-        double returnRate = (totalValue - initialCash) / initialCash;
-        System.out.printf("总收益率: %.2f%%\n", returnRate * 100);
-        System.out.printf("剩余现金: %,.2f\n", cash);
-        System.out.println("最终持仓:");
-        if (holdings.values().stream().allMatch(q -> q == 0)) {
-            System.out.println("  (空仓)");
-        } else {
-            holdings.forEach((symbol, quantity) -> {
-                if (quantity > 0.0001) { // 避免打印极小的浮点数
-                    System.out.printf("  %s: %.2f 股\n", symbol, quantity);
-                }
-            });
-        }
-        System.out.println("--------------------\n");
     }
 
     /**
@@ -141,40 +109,4 @@ public class BasicPortfolio implements Portfolio {
         return summary.toString();
     }
 
-    @Override
-    public Map<String, String> getSummaryMap() {
-        Map<String, String> summary = new LinkedHashMap<>();
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(); // 用于格式化货币
-        NumberFormat percentFormat = NumberFormat.getPercentInstance();
-        percentFormat.setMinimumFractionDigits(2);
-
-        summary.put("初始资金", currencyFormat.format(initialCash));
-        summary.put("最终总价值", currencyFormat.format(totalValue));
-        double returnRate = (initialCash == 0) ? 0 : (totalValue - initialCash) / initialCash;
-        summary.put("总收益率", percentFormat.format(returnRate));
-        summary.put("剩余现金", currencyFormat.format(cash));
-
-        // 添加持仓信息
-        holdings.forEach((symbol, quantity) -> {
-            if (quantity > 0.0001) {
-                summary.put("持仓: " + symbol, String.format("%.2f 股", quantity));
-            }
-        });
-
-        return summary;
-    }
-
-    public String getTradeLogAsString() {
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("--- 交易日志 ---\n");
-        if (tradeLog.isEmpty()) {
-            logBuilder.append(" (无交易记录)\n");
-        } else {
-            for (String log : tradeLog) {
-                logBuilder.append(log).append("\n");
-            }
-        }
-        logBuilder.append("----------------\n");
-        return logBuilder.toString();
-    }
 }

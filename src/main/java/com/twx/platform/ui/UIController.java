@@ -43,37 +43,64 @@ import java.util.Map;
 public class UIController {
 
     // --- FXML UI Elements ---
-    @FXML private BorderPane rootPane;
-    @FXML private TextField tickerField;
-    @FXML private TextField initialCashField;
-    @FXML private DatePicker startDatePicker;
-    @FXML private DatePicker endDatePicker;
-    @FXML private TextField shortMaField;
-    @FXML private TextField longMaField;
-    @FXML private ComboBox<String> positionSizerComboBox;
-    @FXML private Label sizerParamLabel;
-    @FXML private TextField sizerParamField;
-    @FXML private Button runButton;
-    @FXML private ToggleButton themeToggleButton;
+    @FXML
+    private BorderPane rootPane;
+    @FXML
+    private TextField tickerField;
+    @FXML
+    private TextField initialCashField;
+    @FXML
+    private DatePicker startDatePicker;
+    @FXML
+    private DatePicker endDatePicker;
+    @FXML
+    private TextField shortMaField;
+    @FXML
+    private TextField longMaField;
+    @FXML
+    private ComboBox<String> positionSizerComboBox;
+    @FXML
+    private Label sizerParamLabel;
+    @FXML
+    private TextField sizerParamField;
+    @FXML
+    private Button runButton;
+    @FXML
+    private ToggleButton themeToggleButton;
 
     // Chart and Analysis Options
-    @FXML private LineChart<String, Number> priceChart;
-    @FXML private CheckBox showCandlestickCheck;
-    @FXML private CheckBox showMaCheck;
-    @FXML private CheckBox showMacdCheck;
-    @FXML private CheckBox showRsiCheck;
-    @FXML private CheckBox showBbCheck;
-    @FXML private TextField rsiPeriodField;
-    @FXML private TextField bbandsPeriodField;
+    @FXML
+    private LineChart<String, Number> priceChart;
+    @FXML
+    private CheckBox showCandlestickCheck;
+    @FXML
+    private CheckBox showMaCheck;
+    @FXML
+    private CheckBox showMacdCheck;
+    @FXML
+    private CheckBox showRsiCheck;
+    @FXML
+    private CheckBox showBbCheck;
+    @FXML
+    private TextField rsiPeriodField;
+    @FXML
+    private TextField bbandsPeriodField;
 
     // Result Display
-    @FXML private TextArea summaryArea;
-    @FXML private TableView<Order> tradeLogTable;
-    @FXML private TableColumn<Order, String> dateColumn;
-    @FXML private TableColumn<Order, String> signalColumn;
-    @FXML private TableColumn<Order, Double> priceColumn;
-    @FXML private TableColumn<Order, Double> quantityColumn;
-    @FXML private TableColumn<Order, String> valueColumn;
+    @FXML
+    private TextArea summaryArea;
+    @FXML
+    private TableView<Order> tradeLogTable;
+    @FXML
+    private TableColumn<Order, String> dateColumn;
+    @FXML
+    private TableColumn<Order, String> signalColumn;
+    @FXML
+    private TableColumn<Order, Double> priceColumn;
+    @FXML
+    private TableColumn<Order, Double> quantityColumn;
+    @FXML
+    private TableColumn<Order, String> valueColumn;
 
     // --- Constants ---
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -122,9 +149,18 @@ public class UIController {
         positionSizerComboBox.getItems().addAll(CASH_PERCENTAGE_SIZER, FIXED_QUANTITY_SIZER, FIXED_CASH_QUANTITY_SIZER);
         positionSizerComboBox.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
             switch (newValue) {
-                case CASH_PERCENTAGE_SIZER -> { sizerParamLabel.setText("资金比例(%):"); sizerParamField.setText("15.0"); }
-                case FIXED_QUANTITY_SIZER -> { sizerParamLabel.setText("固定股数:"); sizerParamField.setText("100"); }
-                case FIXED_CASH_QUANTITY_SIZER -> { sizerParamLabel.setText("固定资金:"); sizerParamField.setText("1000"); }
+                case CASH_PERCENTAGE_SIZER -> {
+                    sizerParamLabel.setText("资金比例(%):");
+                    sizerParamField.setText("15.0");
+                }
+                case FIXED_QUANTITY_SIZER -> {
+                    sizerParamLabel.setText("固定股数:");
+                    sizerParamField.setText("100");
+                }
+                case FIXED_CASH_QUANTITY_SIZER -> {
+                    sizerParamLabel.setText("固定资金:");
+                    sizerParamField.setText("1000");
+                }
             }
         });
         positionSizerComboBox.getSelectionModel().selectFirst();
@@ -230,7 +266,7 @@ public class UIController {
         } else {
             // 绘制传统的收盘价线 (从缓存的K线数据中提取)
             // 我们从candlestickSeries的收盘价系列中提取数据，确保数据源一致
-            for(XYChart.Series<String, Number> series : candlestickSeries) {
+            for (XYChart.Series<String, Number> series : candlestickSeries) {
                 if ("收盘价".equals(series.getName())) {
                     priceChart.getData().add(series);
                     break;
@@ -254,7 +290,35 @@ public class UIController {
 
         // 3. 总是添加交易点连线
         if (lastBacktestResult.executedOrders() != null && !lastBacktestResult.executedOrders().isEmpty()) {
-            priceChart.getData().add(createTradeSignalSeries("交易点连线", lastBacktestResult.executedOrders()));
+            XYChart.Series<String, Number> tradeSeries = createTradeSignalSeries("交易点连线", lastBacktestResult.executedOrders());
+            priceChart.getData().add(tradeSeries);
+
+            // ★★★ 最终修复逻辑 ★★★
+            // 在UI线程的下一个布局周期中，当LineChart已经创建并设置好默认节点和样式后，
+            // 我们再来应用我们自定义的样式。
+            Platform.runLater(() -> {
+                for (XYChart.Data<String, Number> data : tradeSeries.getData()) {
+                    if (data.getNode() != null) {
+                        // 从数据点中恢复 Order 对象
+                        Object extraValue = data.getExtraValue();
+                        if (extraValue instanceof Order) {
+                            Order order = (Order) extraValue;
+
+                            // 确定应该应用哪个CSS类
+                            String symbolCssClass = (order.signal() == TradeSignal.BUY)
+                                    ? "buy-signal-symbol"
+                                    : "sell-signal-symbol";
+
+                            // ★ 核心操作：在默认样式的基础上，添加我们的自定义样式类
+                            // 我们不再移除 chart-line-symbol，而是与之共存
+                            data.getNode().getStyleClass().add(symbolCssClass);
+
+                            // 将节点置于顶层，防止被线条遮挡
+                            data.getNode().toFront();
+                        }
+                    }
+                }
+            });
         }
 
         // 4. 动态调整Y轴
@@ -278,10 +342,10 @@ public class UIController {
         // 为每个系列添加CSS类，以便在样式表中定义不同颜色
         // 我们利用默认颜色序列来简化CSS
         Platform.runLater(() -> {
-            if(highSeries.getNode() != null) highSeries.getNode().getStyleClass().add("default-color0");
-            if(openSeries.getNode() != null) openSeries.getNode().getStyleClass().add("default-color1");
-            if(closeSeries.getNode() != null) closeSeries.getNode().getStyleClass().add("default-color2");
-            if(lowSeries.getNode() != null) lowSeries.getNode().getStyleClass().add("default-color3");
+            if (highSeries.getNode() != null) highSeries.getNode().getStyleClass().add("default-color0");
+            if (openSeries.getNode() != null) openSeries.getNode().getStyleClass().add("default-color1");
+            if (closeSeries.getNode() != null) closeSeries.getNode().getStyleClass().add("default-color2");
+            if (lowSeries.getNode() != null) lowSeries.getNode().getStyleClass().add("default-color3");
         });
 
 
@@ -349,21 +413,25 @@ public class UIController {
         tradeLogTable.getItems().addAll(result.executedOrders());
     }
 
+    // 在 UIController.java 中
     private XYChart.Series<String, Number> createTradeSignalSeries(String name, List<Order> executedOrders) {
         XYChart.Series<String, Number> dataSeries = new XYChart.Series<>();
         dataSeries.setName(name);
+
+        // 应用虚线样式到连接线上
         dataSeries.nodeProperty().addListener((obs, oldNode, newNode) -> {
             if (newNode != null) {
                 newNode.getStyleClass().add("trade-signal-series");
             }
         });
+
         for (Order order : executedOrders) {
             String date = order.timestamp().toLocalDate().toString();
             XYChart.Data<String, Number> data = new XYChart.Data<>(date, order.price());
-            String symbolCssClass = (order.signal() == TradeSignal.BUY) ? "buy-signal-symbol" : "sell-signal-symbol";
-            StackPane symbolNode = new StackPane();
-            symbolNode.getStyleClass().add(symbolCssClass);
-            data.setNode(symbolNode);
+
+            // ★ 关键修改：将整个 Order 对象附加到数据点上
+            data.setExtraValue(order);
+
             dataSeries.getData().add(data);
         }
         return dataSeries;

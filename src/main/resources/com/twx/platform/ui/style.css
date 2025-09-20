@@ -120,16 +120,17 @@
 /* ★ 1. Hide default symbols (circles) for ALL series. Our custom nodes won't be affected. */
 .chart-line-symbol {
     -fx-background-color: transparent, transparent;
+    -fx-padding: 5px;
 }
 
 /* ★ 2. Define the style for our custom signal symbols (triangles). */
-.buy-signal-symbol {
+.chart-line-symbol.buy-signal-symbol {
     -fx-shape: "M5,0 L10,10 L0,10 Z"; /* Upward triangle */
     -fx-background-color: -fx-theme-positive-color;
     -fx-padding: 7px;
     -fx-background-insets: 0;
 }
-.sell-signal-symbol {
+.chart-line-symbol.sell-signal-symbol {
     -fx-shape: "M0,0 L10,0 L5,10 Z"; /* Downward triangle */
     -fx-background-color: -fx-theme-negative-color;
     -fx-padding: 7px;

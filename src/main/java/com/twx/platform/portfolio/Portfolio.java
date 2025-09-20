@@ -15,7 +15,7 @@ public interface Portfolio {
      * 处理一笔交易订单。
      * @param order 包含交易详情的订单对象
      */
-    void processOrder(Order order);
+    boolean processOrder(Order order);
 
     /**
      * 根据最新的市场价格更新投资组合的总价值。
@@ -36,10 +36,4 @@ public interface Portfolio {
      */
     double getTotalValue();
 
-    /**
-     * 打印投资组合的业绩总结报告。
-     */
-    void printSummary();
-
-    Map<String, String> getSummaryMap();
 }

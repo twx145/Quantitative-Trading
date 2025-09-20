@@ -54,8 +54,8 @@ public class BacktestEngine {
                 double quantity = positionSizer.calculateQuantity(price, portfolio);
                 if (quantity > 0) {
                     Order order = new Order(ticker, signal, quantity, price, series.getBar(i).getEndTime());
-                    portfolio.processOrder(order);
-                    executedOrders.add(order);
+                    boolean success = portfolio.processOrder(order);
+                    if(success)executedOrders.add(order);
                 }
             }
             portfolio.updateValue(ticker, series.getBar(i).getClosePrice().doubleValue());

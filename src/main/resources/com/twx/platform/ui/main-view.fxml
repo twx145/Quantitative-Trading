@@ -96,9 +96,9 @@
                         <ColumnConstraints />
                     </columnConstraints>
                     <Label text="RSI 周期:" GridPane.rowIndex="0" />
-                    <TextField fx:id="rsiPeriodField" text="14" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <TextField fx:id="rsiPeriodField" text="13" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                     <Label text="BBands 周期:" GridPane.rowIndex="1" />
-                    <TextField fx:id="bbandsPeriodField" text="20" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <TextField fx:id="bbandsPeriodField" text="26" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                 </GridPane>
             </VBox>
         </TitledPane>

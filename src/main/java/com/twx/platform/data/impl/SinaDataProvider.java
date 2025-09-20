@@ -33,9 +33,6 @@ public class SinaDataProvider implements DataProvider {
 
     private static final String API_URL_FORMAT = "http://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=%s&scale=240&ma=no&datalen=10000";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    // 定义一个正则表达式，用于从JSON片段中捕获K线数据
-    // 使用命名捕获组 (?<name>...) 使代码更易读
     private static final Pattern SINA_BAR_PATTERN = Pattern.compile(
             "\\{\"day\":\"(?<day>[^\"]+)\",\"open\":\"(?<open>[^\"]+)\",\"high\":\"(?<high>[^\"]+)\",\"low\":\"(?<low>[^\"]+)\",\"close\":\"(?<close>[^\"]+)\",\"volume\":\"(?<volume>[^\"]+)\"}"
     );
