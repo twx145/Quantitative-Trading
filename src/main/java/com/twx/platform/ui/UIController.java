@@ -91,7 +91,7 @@ public class UIController {
 
     @FXML
     public void initialize() {
-        startDatePicker.setValue(LocalDate.of(2023, 1, 1));
+        startDatePicker.setValue(LocalDate.of(2025, 1, 1));
         endDatePicker.setValue(LocalDate.now());
         initializeTable();
         initializePositionSizerControls();
