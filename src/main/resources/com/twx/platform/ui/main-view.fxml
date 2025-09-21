@@ -6,54 +6,72 @@
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.SVGPath?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="rootPane" styleClass="body" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.twx.platform.ui.UIController">
     <top>
-        <VBox spacing="10.0">
-            <padding>
-                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-            </padding>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <Label text="量化交易回测平台">
-                    <font>
-                        <Font name="System Bold" size="18.0" />
-                    </font>
-                </Label>
-                <ToggleButton fx:id="themeToggleButton" onAction="#handleThemeToggle" text="🌙" />
+        <VBox>
+            <!-- 企业级自定义标题栏 -->
+            <HBox fx:id="customTitleBar" alignment="CENTER_LEFT" prefHeight="40.0" styleClass="custom-title-bar">
+                <padding>
+                    <Insets left="15.0" />
+                </padding>
+                <Label styleClass="window-title" text="专业量化交易回测平台" />
+                <Pane HBox.hgrow="ALWAYS" />
+                <HBox alignment="CENTER_RIGHT" styleClass="window-buttons-container">
+                    <ToggleButton fx:id="themeToggleButton" onAction="#handleThemeToggle" styleClass="theme-toggle-button" text="🌙" />
+                    <StackPane fx:id="minimizeButton" onMouseClicked="#handleMinimize" styleClass="window-button">
+                        <SVGPath content="M 0 5 H 10" styleClass="svg-path" />
+                    </StackPane>
+                    <StackPane fx:id="maximizeButton" onMouseClicked="#handleMaximize" styleClass="window-button">
+                        <SVGPath fx:id="maximizeIcon" content="M 0 0 H 10 V 10 H 0 Z M 1 1 V 9 H 9 V 1 Z" styleClass="svg-path" />
+                        <SVGPath fx:id="restoreIcon" content="M 0 2 H 8 V 10 H 0 Z M 1 3 V 9 H 7 V 3 Z M 2 0 H 10 V 8 H 9 V 1 H 3 V 0 Z" managed="false" styleClass="svg-path" visible="false" />
+                    </StackPane>
+                    <StackPane fx:id="closeButton" onMouseClicked="#handleClose" styleClass="window-button, window-close-button">
+                        <SVGPath content="M 0 0 L 10 10 M 10 0 L 0 10" styleClass="svg-path" />
+                    </StackPane>
+                </HBox>
             </HBox>
-            <GridPane hgap="10.0" vgap="10.0">
-                <columnConstraints>
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    <!-- ★★★ 关键修改：hgrow="ALWAYS" 让输入框自动填满 ★★★ -->
-                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
-                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                </columnConstraints>
-                <rowConstraints>
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                </rowConstraints>
-                <Label text="股票代码:" />
-                <TextField fx:id="tickerField" promptText="例如: sh600519" text="sh600519" GridPane.columnIndex="1" />
-                <Label text="初始资金:" GridPane.columnIndex="2" />
-                <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="3" />
-                <Label text="开始日期:" GridPane.rowIndex="1" />
-                <DatePicker fx:id="startDatePicker" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                <DatePicker fx:id="endDatePicker" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                <Label text="仓位策略:" GridPane.rowIndex="2" />
-                <ComboBox fx:id="positionSizerComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                <Label fx:id="sizerParamLabel" text="参数:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                <TextField fx:id="sizerParamField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="4" GridPane.rowIndex="2" />
-            </GridPane>
+
+            <!-- 主控制区域 -->
+            <VBox spacing="10.0">
+                <padding>
+                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                </padding>
+                <GridPane hgap="10.0" vgap="10.0">
+                    <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                    <Label text="股票代码:" />
+                    <TextField fx:id="tickerField" promptText="例如: sh600519" text="sh600519" GridPane.columnIndex="1" />
+                    <Label text="初始资金:" GridPane.columnIndex="2" />
+                    <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="3" />
+                    <Label text="开始日期:" GridPane.rowIndex="1" />
+                    <DatePicker fx:id="startDatePicker" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                    <DatePicker fx:id="endDatePicker" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                    <Label text="仓位策略:" GridPane.rowIndex="2" />
+                    <ComboBox fx:id="positionSizerComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    <Label fx:id="sizerParamLabel" text="参数:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                    <TextField fx:id="sizerParamField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                    <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+                </GridPane>
+            </VBox>
         </VBox>
     </top>
     <center>
-        <!-- ★★★ 关键修改：移除 createSymbols="false" ★★★ -->
+        <!-- ★ 修复：移除 createSymbols="false" 属性 -->
+        <!-- 这将让图表默认创建符号节点，从而让图例和我们的自定义三角形逻辑都能正常工作 -->
         <LineChart fx:id="priceChart" animated="false" title="股价走势与交易点">
             <xAxis>
                 <CategoryAxis side="BOTTOM" label="日期" />
@@ -63,6 +81,7 @@
             </yAxis>
         </LineChart>
     </center>
+    <!-- right 和 bottom 部分保持不变 -->
     <right>
         <TitledPane collapsible="false" text="图表分析选项">
             <VBox prefWidth="280.0" spacing="10.0">

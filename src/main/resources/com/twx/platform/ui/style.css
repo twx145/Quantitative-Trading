@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Quantitive-Trading Theme - FINAL VERSION
+   Quantitive-Trading Theme - ENTERPRISE VERSION
    ========================================================================== */
 
 /* --- 1. CSS变量定义 --- */
@@ -41,9 +41,115 @@
     -fx-theme-scrollbar-thumb-hover: #7F8C8D;
 }
 
-/* --- 全局与容器样式 --- */
-.body, .vbox, .hbox, .grid-pane, .split-pane, .split-pane > .split-pane-divider { -fx-background-color: -fx-theme-base-bg; }
-.body { -fx-font-family: "Microsoft YaHei UI", sans-serif; -fx-font-size: 13px; }
+
+/* ★★★ 全局与窗口样式 ★★★ */
+.body {
+    -fx-background-color: -fx-theme-base-bg;
+    /* ★ 核心：为窗口添加圆角 (这个继续保留) */
+    -fx-background-radius: 10px;
+
+    /* ★ 性能优化 3: 注释掉或删除下面这行代价极高的阴影效果 */
+    /* -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 20, 0, 0, 5); */
+
+    -fx-font-family: "Microsoft YaHei UI", sans-serif;
+    -fx-font-size: 13px;
+
+    /* ★ 优化：添加一个细微的边框来替代阴影，增加层次感 */
+    -fx-border-color: rgba(0, 0, 0, 0.1);
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+}
+/* ★ 暗色模式下边框的优化 */
+.theme-dark .body {
+    -fx-border-color: rgba(0, 0, 0, 0.4);
+}
+/* 子容器设为透明，以显示body的背景 */
+.vbox, .hbox, .grid-pane, .split-pane, .split-pane > .split-pane-divider {
+    -fx-background-color: transparent;
+}
+
+
+/* ★★★ 自定义标题栏样式 ★★★ */
+.custom-title-bar {
+    /* 只给顶部设置圆角，与窗口保持一致 */
+    -fx-background-radius: 10px 10px 0 0;
+    -fx-background-color: derive(-fx-theme-base-bg, -2%); /* 比背景色稍深一点，增加层次感 */
+    -fx-border-color: -fx-theme-border;
+    -fx-border-width: 0 0 1px 0;
+}
+.theme-dark .custom-title-bar {
+    -fx-background-color: derive(-fx-theme-base-bg, 5%);
+}
+.window-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-theme-text-primary;
+}
+.window-buttons-container {
+    -fx-padding: 0 5px 0 0;
+}
+
+/* ★★★ 窗口控制按钮 (SVG) ★★★ */
+.window-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 5px;
+    -fx-min-width: 45px;
+    -fx-min-height: 30px;
+    -fx-padding: 5px;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+.window-button:hover {
+    -fx-background-color: rgba(127, 140, 141, 0.2);
+}
+.window-close-button:hover {
+    -fx-background-color: #e74c3c;
+}
+.theme-dark .window-button:hover {
+    -fx-background-color: rgba(236, 240, 241, 0.15);
+}
+.theme-dark .window-close-button:hover {
+    -fx-background-color: #c0392b;
+}
+
+/* SVG 图标样式 */
+.window-button .svg-path {
+    -fx-stroke: -fx-theme-text-secondary;
+    -fx-stroke-width: 1.5;
+}
+.window-button:hover .svg-path {
+    -fx-stroke: -fx-theme-text-primary;
+}
+.window-close-button:hover .svg-path {
+    -fx-stroke: white;
+}
+.theme-dark .window-button:hover .svg-path {
+    -fx-stroke: -fx-theme-text-primary;
+}
+.theme-dark .window-close-button:hover .svg-path {
+    -fx-stroke: white;
+}
+
+/* 主题切换按钮 */
+.theme-toggle-button, .theme-toggle-button:selected {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-theme-text-secondary;
+    -fx-font-size: 16px;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+.theme-toggle-button:hover {
+    -fx-background-color: rgba(127, 140, 141, 0.2);
+}
+.theme-dark .theme-toggle-button:hover {
+    -fx-background-color: rgba(236, 240, 241, 0.15);
+}
+
+
+/* ========================================================================
+   ★★★ 以下是你项目原有的所有控件和图表样式，无需修改 ★★★
+   ======================================================================== */
 
 /* --- 控件样式 --- */
 .label { -fx-text-fill: -fx-theme-text-primary; }
@@ -103,7 +209,6 @@
 .chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: -fx-theme-chart-grid; }
 .chart-legend { -fx-background-color: -fx-theme-control-bg; }
 .chart-legend .label { -fx-text-fill: -fx-theme-text-primary; }
-
 .chart-series-line { -fx-stroke-width: 1.5px; }
 
 /* Indicator line colors */
@@ -118,10 +223,7 @@
 .default-color8.chart-series-line { -fx-stroke: -fx-theme-bb-upper-lower-color; -fx-stroke-dash-array: 4 4;}
 
 /* ★ 1. Hide default symbols (circles) for ALL series. Our custom nodes won't be affected. */
-.chart-line-symbol {
-    -fx-background-color: transparent, transparent;
-    -fx-padding: 5px;
-}
+.chart-line-symbol { -fx-background-color: transparent, transparent; -fx-padding: 5px; }
 
 /* ★ 2. Define the style for our custom signal symbols (triangles). */
 .chart-line-symbol.buy-signal-symbol {
