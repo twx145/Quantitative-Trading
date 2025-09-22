@@ -1,14 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
+<!-- 根布局是一个 VBox -->
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0" >
-
-</AnchorPane>
+<VBox spacing="10.0" styleClass="side-panel" xmlns="http://javafx.com/javafx/17.0.2-ea"
+      xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+    <Label styleClass="panel-title" text="图表分析选项"/>
+    <Separator/>
+    <Label style="-fx-font-weight: bold;" text="基础图表"/>
+    <CheckBox fx:id="showCandlestickCheck" text="显示K线图(模拟)"/>
+    <Separator/>
+    <Label style="-fx-font-weight: bold;" text="技术指标"/>
+    <VBox spacing="5.0">
+        <CheckBox fx:id="showMaCheck" text="移动平均线(MA)"/>
+        <HBox alignment="CENTER_LEFT" spacing="5.0">
+            <padding>
+                <Insets left="20.0"/>
+            </padding>
+            <Label text="短:"/>
+            <TextField fx:id="shortMaField" prefWidth="45.0" text="10"/>
+            <Label text="长:"/>
+            <TextField fx:id="longMaField" prefWidth="45.0" text="30"/>
+        </HBox>
+    </VBox>
+    <CheckBox fx:id="showMacdCheck" text="MACD指标"/>
+    <CheckBox fx:id="showRsiCheck" text="RSI指标"/>
+    <CheckBox fx:id="showBbCheck" text="布林带(BBands)"/>
+    <Separator/>
+    <Label style="-fx-font-weight: bold;" text="指标参数"/>
+    <GridPane hgap="5.0" vgap="5.0">
+        <columnConstraints>
+            <ColumnConstraints halignment="RIGHT" prefWidth="80.0"/>
+            <ColumnConstraints/>
+        </columnConstraints>
+        <Label text="RSI 周期:" GridPane.rowIndex="0"/>
+        <TextField fx:id="rsiPeriodField" text="13" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        <Label text="BBands 周期:" GridPane.rowIndex="1"/>
+        <TextField fx:id="bbandsPeriodField" text="26" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+    </GridPane>
+</VBox>

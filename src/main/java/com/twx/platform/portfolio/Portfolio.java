@@ -36,4 +36,6 @@ public interface Portfolio {
      */
     double getTotalValue();
 
+    String getSummary();
+
 }

@@ -1,8 +1,6 @@
 /* ==========================================================================
-   Quantitive-Trading Theme - ENTERPRISE VERSION
+   1. CSS 变量定义
    ========================================================================== */
-
-/* --- 1. CSS变量定义 --- */
 .root {
     -fx-theme-base-bg: #f4f5f7;
     -fx-theme-control-bg: #ffffff;
@@ -12,20 +10,9 @@
     -fx-theme-accent: #3498db;
     -fx-theme-accent-hover: #2980b9;
     -fx-theme-border: #dcdfe6;
-    -fx-theme-chart-grid: #ecf0f1;
-    -fx-theme-scrollbar-thumb: #bdc3c7;
-    -fx-theme-scrollbar-thumb-hover: #95a5a6;
-
-    -fx-theme-price-color: #3498db;
     -fx-theme-positive-color: #26a69a;
     -fx-theme-negative-color: #ef5350;
-    -fx-theme-ma-short-color: #ffa726;
-    -fx-theme-ma-long-color: #ab47bc;
-    -fx-theme-macd-color: #29b6f6;
-    -fx-theme-macd-signal-color: #ff7043;
-    -fx-theme-rsi-color: #66bb6a;
-    -fx-theme-bb-upper-lower-color: #78909c;
-    -fx-theme-bb-middle-color: #ffca28;
+    -fx-theme-accent-grey: #dce1e7;
 }
 
 .theme-dark {
@@ -36,212 +23,192 @@
     -fx-theme-accent: #3498db;
     -fx-theme-accent-hover: #4aa3df;
     -fx-theme-border: #3e5166;
-    -fx-theme-chart-grid: #3e5166;
-    -fx-theme-scrollbar-thumb: #566573;
-    -fx-theme-scrollbar-thumb-hover: #7F8C8D;
+    -fx-theme-accent-grey: #3e5166;
 }
 
-
-/* ★★★ 全局与窗口样式 ★★★ */
+/* ==========================================================================
+   2. 全局 & 布局
+   ========================================================================== */
 .body {
     -fx-background-color: -fx-theme-base-bg;
-    /* ★ 核心：为窗口添加圆角 (这个继续保留) */
-    -fx-background-radius: 10px;
-
-    /* ★ 性能优化 3: 注释掉或删除下面这行代价极高的阴影效果 */
-    /* -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 20, 0, 0, 5); */
-
     -fx-font-family: "Microsoft YaHei UI", sans-serif;
     -fx-font-size: 13px;
-
-    /* ★ 优化：添加一个细微的边框来替代阴影，增加层次感 */
-    -fx-border-color: rgba(0, 0, 0, 0.1);
-    -fx-border-width: 1px;
-    -fx-border-radius: 10px;
 }
-/* ★ 暗色模式下边框的优化 */
-.theme-dark .body {
-    -fx-border-color: rgba(0, 0, 0, 0.4);
-}
-/* 子容器设为透明，以显示body的背景 */
-.vbox, .hbox, .grid-pane, .split-pane, .split-pane > .split-pane-divider {
-    -fx-background-color: transparent;
-}
+.split-pane { -fx-background-color: -fx-theme-base-bg; }
+.split-pane > .split-pane-divider { -fx-padding: 0 1px; -fx-background-color: -fx-theme-border; }
 
-
-/* ★★★ 自定义标题栏样式 ★★★ */
-.custom-title-bar {
-    /* 只给顶部设置圆角，与窗口保持一致 */
-    -fx-background-radius: 10px 10px 0 0;
-    -fx-background-color: derive(-fx-theme-base-bg, -2%); /* 比背景色稍深一点，增加层次感 */
+/* ==========================================================================
+   3. 顶栏、底栏 & 侧边栏
+   ========================================================================== */
+.custom-title-bar, .bottom-status-bar, .side-button-bar {
+    -fx-background-color: derive(-fx-theme-base-bg, -2%);
     -fx-border-color: -fx-theme-border;
-    -fx-border-width: 0 0 1px 0;
 }
-.theme-dark .custom-title-bar {
+.theme-dark .custom-title-bar, .theme-dark .bottom-status-bar, .theme-dark .side-button-bar {
     -fx-background-color: derive(-fx-theme-base-bg, 5%);
 }
-.window-title {
-    -fx-font-size: 14px;
-    -fx-font-weight: bold;
-    -fx-text-fill: -fx-theme-text-primary;
-}
-.window-buttons-container {
-    -fx-padding: 0 5px 0 0;
-}
 
-/* ★★★ 窗口控制按钮 (SVG) ★★★ */
-.window-button {
+.custom-title-bar { -fx-border-width: 0 0 1px 0; -fx-min-height: 40px; -fx-padding: 0 5px; }
+.bottom-status-bar { -fx-border-width: 1px 0 0 0; -fx-min-height: 28px; -fx-padding: 2px 5px; }
+.side-button-bar { -fx-padding: 5px 2px; }
+#leftToolBar { -fx-border-width: 0 1px 0 0; -fx-pref-width: 42px; -fx-min-width: 42px;}
+#rightToolBar { -fx-border-width: 0 0 0 1px; -fx-pref-width: 42px; -fx-min-width: 42px;}
+
+/* ==========================================================================
+   4. 按钮 & 图标
+   ========================================================================== */
+.window-button, .status-bar-button, .side-tool-button {
     -fx-background-color: transparent;
-    -fx-background-radius: 5px;
-    -fx-min-width: 45px;
-    -fx-min-height: 30px;
-    -fx-padding: 5px;
-    -fx-cursor: hand;
-    -fx-alignment: center;
-}
-.window-button:hover {
-    -fx-background-color: rgba(127, 140, 141, 0.2);
-}
-.window-close-button:hover {
-    -fx-background-color: #e74c3c;
-}
-.theme-dark .window-button:hover {
-    -fx-background-color: rgba(236, 240, 241, 0.15);
-}
-.theme-dark .window-close-button:hover {
-    -fx-background-color: #c0392b;
-}
-
-/* SVG 图标样式 */
-.window-button .svg-path {
-    -fx-stroke: -fx-theme-text-secondary;
-    -fx-stroke-width: 1.5;
-}
-.window-button:hover .svg-path {
-    -fx-stroke: -fx-theme-text-primary;
-}
-.window-close-button:hover .svg-path {
-    -fx-stroke: white;
-}
-.theme-dark .window-button:hover .svg-path {
-    -fx-stroke: -fx-theme-text-primary;
-}
-.theme-dark .window-close-button:hover .svg-path {
-    -fx-stroke: white;
-}
-
-/* 主题切换按钮 */
-.theme-toggle-button, .theme-toggle-button:selected {
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-theme-text-secondary;
-    -fx-font-size: 16px;
-    -fx-padding: 6px 12px;
-    -fx-background-radius: 5px;
+    -fx-background-radius: 4px;
     -fx-cursor: hand;
 }
-.theme-toggle-button:hover {
-    -fx-background-color: rgba(127, 140, 141, 0.2);
+.window-button:hover, .status-bar-button:hover, .side-tool-button:hover { -fx-background-color: rgba(127, 140, 141, 0.2); }
+.status-bar-button:selected, .side-tool-button:selected { -fx-background-color: -fx-theme-accent-grey; }
+.status-bar-button:selected .svg-icon, .side-tool-button:selected .svg-icon { -fx-fill: -fx-theme-text-primary; }
+
+.svg-icon { -fx-fill: -fx-theme-text-secondary; }
+.side-tool-button .svg-icon { -fx-scale-x: 1.3; -fx-scale-y: 1.3; }
+.window-button .svg-path { -fx-stroke: -fx-theme-text-secondary; -fx-stroke-width: 1.5; }
+.window-button:hover .svg-path, .side-tool-button:hover .svg-icon, .status-bar-button:hover .svg-icon {
+    -fx-stroke: -fx-theme-text-primary;
+    -fx-fill: -fx-theme-text-primary;
 }
-.theme-dark .theme-toggle-button:hover {
-    -fx-background-color: rgba(236, 240, 241, 0.15);
+
+/* --- Dark Theme Overrides for Buttons --- */
+.theme-dark .window-button:hover, .theme-dark .status-bar-button:hover, .theme-dark .side-tool-button:hover { -fx-background-color: rgba(236, 240, 241, 0.15); }
+.theme-dark .window-button:hover .svg-path, .theme-dark .side-tool-button:hover .svg-icon, .theme-dark .status-bar-button:hover .svg-icon {
+    -fx-stroke: -fx-theme-text-primary;
+    -fx-fill: -fx-theme-text-primary;
 }
 
+/* ==========================================================================
+   5. 面板 & 通用组件 (Label, Input, ComboBox...)
+   ========================================================================== */
+.side-panel { -fx-background-color: -fx-theme-base-bg; }
+.panel-title { -fx-font-size: 14px; -fx-font-weight: bold; }
 
-/* ========================================================================
-   ★★★ 以下是你项目原有的所有控件和图表样式，无需修改 ★★★
-   ======================================================================== */
-
-/* --- 控件样式 --- */
 .label { -fx-text-fill: -fx-theme-text-primary; }
-.button, .toggle-button { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 6px 12px; }
-.button:hover, .toggle-button:hover { -fx-background-color: -fx-theme-accent-hover; -fx-cursor: hand; }
-.toggle-button:selected { -fx-background-color: -fx-theme-accent-hover; }
+.button { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; -fx-font-weight: bold; -fx-background-radius: 4px; -fx-padding: 6px 12px; }
+.button:hover { -fx-background-color: -fx-theme-accent-hover; }
 
-.text-field, .combo-box, .date-picker, .text-area { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; -fx-border-color: -fx-theme-border; -fx-border-width: 1px; -fx-border-radius: 4px; -fx-background-radius: 4px; }
+.text-field, .combo-box, .date-picker, .text-area {
+    -fx-background-color: -fx-theme-control-bg;
+    -fx-text-fill: -fx-theme-text-primary;
+    -fx-border-color: -fx-theme-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
 .text-field:focused, .combo-box:focused, .date-picker:focused, .text-area:focused { -fx-border-color: -fx-theme-accent; }
-.date-picker > .text-field { -fx-background-color: -fx-theme-control-bg; }
 .text-area .content { -fx-background-color: -fx-theme-control-bg; }
 
-.check-box .box { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; -fx-border-radius: 3px; }
-.check-box:selected .mark { -fx-background-color: -fx-theme-accent; }
-.check-box { -fx-text-fill: -fx-theme-text-primary; }
+/* --- Dark Theme Overrides for Components --- */
+.theme-dark .label, .theme-dark .panel-title { -fx-text-fill: -fx-theme-text-primary; }
+.theme-dark .check-box .text { -fx-fill: -fx-theme-text-primary; }
+.theme-dark .text-area .content { -fx-background-color: -fx-theme-control-bg; }
 
-.separator .line { -fx-border-color: -fx-theme-border; -fx-border-width: 1 0 0 0; }
-.titled-pane { -fx-border-color: -fx-theme-border; }
-.titled-pane > .title { -fx-background-color: -fx-theme-base-bg; }
-.titled-pane > .title > .text { -fx-fill: -fx-theme-text-primary; }
-.titled-pane > .content { -fx-background-color: -fx-theme-base-bg; -fx-border-color: transparent; }
+/* ComboBox Dropdown Menu */
+.theme-dark .combo-box-popup .list-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
+.theme-dark .combo-box-popup .list-cell { -fx-text-fill: -fx-theme-text-primary; -fx-background-color: transparent; }
+.theme-dark .combo-box-popup .list-cell:hover { -fx-background-color: -fx-theme-accent-hover; -fx-text-fill: -fx-theme-text-on-accent; }
+.theme-dark .combo-box-popup .list-cell:filled:selected { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
+.theme-dark .combo-box-base .arrow { -fx-background-color: -fx-theme-text-secondary; }
+.theme-dark .combo-box-base:hover .arrow { -fx-background-color: -fx-theme-text-primary; }
 
-/* --- ComboBox 和 DatePicker 弹出窗口样式 --- */
-.combo-box-popup .list-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
-.combo-box-popup .list-view .list-cell { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; }
-.combo-box-popup .list-view .list-cell:hover { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
-.date-picker-popup { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
-.date-picker-popup .month-year-pane { -fx-background-color: -fx-theme-base-bg; }
-.date-picker-popup .day-cell { -fx-background-color: -fx-theme-control-bg; -fx-text-fill: -fx-theme-text-primary; }
-.date-picker-popup .day-cell:hover { -fx-background-color: -fx-theme-accent-hover; -fx-text-fill: -fx-theme-text-on-accent; }
-.date-picker-popup .day-cell.today { -fx-border-color: -fx-theme-accent; }
-.date-picker-popup .spinner .label { -fx-text-fill: -fx-theme-text-primary; }
-
-/* --- TableView 和 ScrollBar 样式 --- */
-.table-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
-.table-view .column-header-background { -fx-background-color: -fx-theme-base-bg; }
-.table-view .column-header, .table-view .filler { -fx-background-color: -fx-theme-base-bg; -fx-border-color: transparent -fx-theme-border -fx-theme-border transparent; }
+/* ==========================================================================
+   6. 表格 (TableView)
+   ========================================================================== */
+.table-view {
+    -fx-background-color: -fx-theme-control-bg;
+    -fx-border-color: -fx-theme-border;
+}
+.table-view .column-header-background { -fx-background-color: derive(-fx-theme-base-bg, -2%); }
 .table-view .column-header .label { -fx-text-fill: -fx-theme-text-primary; -fx-font-weight: bold; }
-.table-view .table-cell { -fx-text-fill: -fx-theme-text-primary; -fx-border-color: transparent; -fx-padding: 8px; }
-.table-view .table-row-cell { -fx-background-color: -fx-theme-control-bg; }
-.table-view .table-row-cell:odd { -fx-background-color: -fx-theme-base-bg; }
-.table-view .table-row-cell:hover { -fx-background-color: -fx-theme-accent; }
-.table-view .table-row-cell:hover .table-cell { -fx-text-fill: -fx-theme-text-on-accent; }
 
-.scroll-bar:vertical, .scroll-bar:horizontal { -fx-background-color: transparent; }
-.scroll-bar .thumb { -fx-background-color: -fx-theme-scrollbar-thumb; -fx-background-radius: 8px; }
-.scroll-bar .thumb:hover { -fx-background-color: -fx-theme-scrollbar-thumb-hover; }
-.scroll-bar .increment-button, .scroll-bar .decrement-button { -fx-padding: 0; -fx-background-color: transparent; }
-.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow { -fx-shape: ""; -fx-padding: 0; }
+/* Row Hover and Selection States */
+.table-view .table-row-cell:hover { -fx-background-color: -fx-theme-accent-grey; }
+.table-view .table-row-cell:selected { -fx-background-color: -fx-theme-accent; }
+.table-view .table-row-cell:selected .table-cell { -fx-text-fill: -fx-theme-text-on-accent; }
+.table-view .table-row-cell:hover .table-cell { -fx-text-fill: -fx-theme-text-primary; }
 
-/* --- Chart Styles --- */
-.chart { -fx-background-color: -fx-theme-control-bg; -fx-padding: 5px; }
+/* --- Dark Theme Overrides for TableView --- */
+.theme-dark .table-view { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; }
+.theme-dark .table-view .column-header-background { -fx-background-color: derive(-fx-theme-base-bg, 5%); }
+.theme-dark .table-view .column-header { -fx-background-color: transparent; } /* Show background color */
+.theme-dark .table-view .column-header .label { -fx-text-fill: -fx-theme-text-primary; }
+
+.theme-dark .table-view .table-row-cell { -fx-background-color: -fx-theme-control-bg; }
+.theme-dark .table-view .table-cell { -fx-text-fill: -fx-theme-text-primary; -fx-border-color: transparent; }
+
+.theme-dark .table-view .table-row-cell:hover { -fx-background-color: derive(-fx-theme-control-bg, 15%); }
+.theme-dark .table-view .table-row-cell:hover .table-cell { -fx-text-fill: -fx-theme-text-primary; }
+.theme-dark .table-view .table-row-cell:selected { -fx-background-color: -fx-theme-accent; }
+.theme-dark .table-view .table-row-cell:selected .table-cell { -fx-text-fill: -fx-theme-text-on-accent; }
+.theme-dark .table-view .placeholder .label { -fx-text-fill: -fx-theme-text-secondary; }
+.theme-dark .table-view .corner { -fx-background-color: transparent; }
+
+/* ==========================================================================
+   7. K线图 (Chart)
+   ========================================================================== */
+.chart-title, .axis-label { -fx-text-fill: -fx-theme-text-primary; }
+.axis, .axis .tick-label { -fx-tick-label-fill: -fx-theme-text-secondary; }
 .chart-plot-background { -fx-background-color: -fx-theme-control-bg; }
-.chart-title { -fx-text-fill: -fx-theme-text-primary; -fx-font-size: 1.2em; }
-.axis-label { -fx-text-fill: -fx-theme-text-primary; }
-.axis { -fx-tick-label-fill: -fx-theme-text-secondary; }
-.chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: -fx-theme-chart-grid; }
-.chart-legend { -fx-background-color: -fx-theme-control-bg; }
-.chart-legend .label { -fx-text-fill: -fx-theme-text-primary; }
-.chart-series-line { -fx-stroke-width: 1.5px; }
+.chart-horizontal-grid-lines, .chart-vertical-grid-lines { -fx-stroke: derive(-fx-theme-border, 25%); -fx-stroke-dash-array: 2 4; }
 
-/* Indicator line colors */
-.default-color0.chart-series-line { -fx-stroke: -fx-theme-price-color; }
-.default-color1.chart-series-line { -fx-stroke: -fx-theme-ma-short-color; }
-.default-color2.chart-series-line { -fx-stroke: -fx-theme-ma-long-color; }
-.default-color3.chart-series-line { -fx-stroke: -fx-theme-macd-color; }
-.default-color4.chart-series-line { -fx-stroke: -fx-theme-macd-signal-color; }
-.default-color5.chart-series-line { -fx-stroke: -fx-theme-rsi-color; }
-.default-color6.chart-series-line { -fx-stroke: -fx-theme-bb-upper-lower-color; -fx-stroke-dash-array: 4 4;}
-.default-color7.chart-series-line { -fx-stroke: -fx-theme-bb-middle-color; }
-.default-color8.chart-series-line { -fx-stroke: -fx-theme-bb-upper-lower-color; -fx-stroke-dash-array: 4 4;}
+.chart-line-symbol { -fx-background-color: transparent, transparent; -fx-padding: 0; -fx-background-insets: 0; }
+.chart-line-symbol.buy-signal-symbol { -fx-shape: "M5,0 L10,10 L0,10 Z"; -fx-background-color: -fx-theme-positive-color; -fx-padding: 7px; }
+.chart-line-symbol.sell-signal-symbol { -fx-shape: "M0,0 L10,0 L5,10 Z"; -fx-background-color: -fx-theme-negative-color; -fx-padding: 7px; }
 
-/* ★ 1. Hide default symbols (circles) for ALL series. Our custom nodes won't be affected. */
-.chart-line-symbol { -fx-background-color: transparent, transparent; -fx-padding: 5px; }
+.chart-series-line { -fx-stroke-width: 1.2px; }
+.close-price-series.chart-series-line { -fx-stroke: -fx-theme-accent; -fx-stroke-width: 1.5px; }
+.trade-signal-series.chart-series-line { -fx-stroke: #7f8c8d; -fx-stroke-width: 1px; -fx-stroke-dash-array: 3 5; }
+.ma-short-series.chart-series-line { -fx-stroke: #e67e22; } /* Orange */
+.ma-long-series.chart-series-line { -fx-stroke: #9b59b6; } /* Purple */
+.bb-middle-series.chart-series-line { -fx-stroke: #f1c40f; -fx-stroke-dash-array: 4 4; } /* Yellow Dashed */
+.bb-upper-series.chart-series-line, .bb-lower-series.chart-series-line { -fx-stroke: #1abc9c; } /* Teal */
+.macd-series.chart-series-line { -fx-stroke: #e74c3c; } /* Red */
+.macd-signal-series.chart-series-line { -fx-stroke: #2ecc71; } /* Green */
+.rsi-series.chart-series-line { -fx-stroke: #34495e; } /* Dark Blue Grey */
 
-/* ★ 2. Define the style for our custom signal symbols (triangles). */
-.chart-line-symbol.buy-signal-symbol {
-    -fx-shape: "M5,0 L10,10 L0,10 Z"; /* Upward triangle */
-    -fx-background-color: -fx-theme-positive-color;
-    -fx-padding: 7px;
-    -fx-background-insets: 0;
+/* --- Dark Theme Overrides for Chart --- */
+.theme-dark .chart-legend { -fx-background-color: -fx-theme-control-bg; }
+.theme-dark .chart-legend .label { -fx-text-fill: -fx-theme-text-primary; }
+
+/* ==========================================================================
+   8. AI 助手面板
+   ========================================================================== */
+.ai-assistant-panel { -fx-padding: 10px; -fx-spacing: 8px; -fx-background-color: -fx-theme-base-bg; }
+.ai-chat-scroll-pane, .ai-chat-scroll-pane > .viewport { -fx-background-color: transparent; }
+
+/* Chat Bubbles */
+.chat-bubble { -fx-background-radius: 10px; -fx-max-width: 280px; }
+.user-bubble { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
+.ai-bubble { -fx-background-color: -fx-theme-control-bg; -fx-border-color: -fx-theme-border; -fx-border-width: 1px; -fx-padding: 1px; }
+
+/* WebView inside AI bubble should have transparent background */
+.ai-bubble .web-view { -fx-background-color: transparent; }
+
+/* --- Dark Theme Overrides for AI Panel --- */
+.theme-dark .user-bubble { -fx-background-color: -fx-theme-accent-hover; }
+.theme-dark .ai-bubble { -fx-background-color: -fx-theme-accent-grey; }
+
+/* ==========================================================================
+   9. 自定义对话框
+   ========================================================================== */
+.dialog-pane {
+    -fx-background-color: -fx-theme-control-bg;
+    -fx-background-radius: 8px;
+    -fx-border-width: 1px;
+    -fx-border-color: -fx-theme-border;
+    -fx-border-radius: 8px;
 }
-.chart-line-symbol.sell-signal-symbol {
-    -fx-shape: "M0,0 L10,0 L5,10 Z"; /* Downward triangle */
-    -fx-background-color: -fx-theme-negative-color;
-    -fx-padding: 7px;
-    -fx-background-insets: 0;
-}
+.dialog-title { -fx-font-size: 16px; -fx-font-weight: bold; }
+.dialog-content { -fx-font-size: 13px; -fx-text-fill: -fx-theme-text-secondary; }
+.dialog-icon { -fx-scale-x: 1.8; -fx-scale-y: 1.8; }
+.dialog-icon-info { -fx-fill: -fx-theme-accent; }
+.dialog-icon-warning { -fx-fill: #f39c12; }
+.dialog-icon-error { -fx-fill: -fx-theme-negative-color; }
+.dialog-button { -fx-padding: 6px 16px; -fx-cursor: hand; } /* Uses general .button styles */
 
-/* ★ 3. Define the style for the line that connects the trade signals. */
-.trade-signal-series.chart-series-line {
-    -fx-stroke: #7f8c8d; /* A neutral gray color */
-    -fx-stroke-width: 1px;
-    -fx-stroke-dash-array: 3 5; /* A dashed line style to make it less prominent */
-}
+/* --- Dark Theme Overrides for Dialog --- */
+.theme-dark .dialog-pane { -fx-background-color: derive(-fx-theme-base-bg, 10%); }

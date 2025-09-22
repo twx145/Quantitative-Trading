@@ -74,4 +74,12 @@ public class MovingAverageCrossStrategy implements Strategy {
     public String getName() {
         return String.format("SMA(%d)/SMA(%d) Cross Strategy", shortSmaPeriod, longSmaPeriod);
     }
+
+    public int getShortBarCount() {
+        return shortSmaPeriod;
+    }
+
+    public int getLongBarCount() {
+        return longSmaPeriod;
+    }
 }

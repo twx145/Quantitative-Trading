@@ -20,36 +20,32 @@ public class MovingAverageTechnique implements AnalysisTechnique {
     }
 
     @Override
-    public List<XYChart.Series<String, Number>> calculate(BarSeries series) {
-        List<XYChart.Series<String, Number>> maSeriesList = new ArrayList<>();
+    public List<XYChart.Series<Number, Number>> calculate(BarSeries series) {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
 
         // 短期均线
         SMAIndicator shortSma = new SMAIndicator(closePrice, shortPeriod);
-        XYChart.Series<String, Number> shortMaSeries = new XYChart.Series<>();
+        XYChart.Series<Number, Number> shortMaSeries = new XYChart.Series<>();
         shortMaSeries.setName("SMA(" + shortPeriod + ")");
         for (int i = 0; i < series.getBarCount(); i++) {
-            String date = series.getBar(i).getEndTime().toLocalDate().toString();
-            shortMaSeries.getData().add(new XYChart.Data<>(date, shortSma.getValue(i).doubleValue()));
+            long epochDay = series.getBar(i).getEndTime().toLocalDate().toEpochDay();
+            shortMaSeries.getData().add(new XYChart.Data<>(epochDay, shortSma.getValue(i).doubleValue()));
         }
-        maSeriesList.add(shortMaSeries);
 
         // 长期均线
         SMAIndicator longSma = new SMAIndicator(closePrice, longPeriod);
-        XYChart.Series<String, Number> longMaSeries = new XYChart.Series<>();
+        XYChart.Series<Number, Number> longMaSeries = new XYChart.Series<>();
         longMaSeries.setName("SMA(" + longPeriod + ")");
         for (int i = 0; i < series.getBarCount(); i++) {
-            String date = series.getBar(i).getEndTime().toLocalDate().toString();
-            longMaSeries.getData().add(new XYChart.Data<>(date, longSma.getValue(i).doubleValue()));
+            long epochDay = series.getBar(i).getEndTime().toLocalDate().toEpochDay();
+            longMaSeries.getData().add(new XYChart.Data<>(epochDay, longSma.getValue(i).doubleValue()));
         }
-        maSeriesList.add(longMaSeries);
 
-        return maSeriesList;
+        return List.of(shortMaSeries, longMaSeries);
     }
 
     @Override
     public String getName() {
         return "Moving Averages";
     }
-
 }

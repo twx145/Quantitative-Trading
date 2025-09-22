@@ -3,6 +3,8 @@ package com.twx.platform.data;
 import com.twx.platform.common.Ticker;
 import com.twx.platform.common.TimeFrame;
 import org.ta4j.core.BarSeries;
+
+import java.io.IOException;
 import java.time.LocalDate;
 
 /**
@@ -21,4 +23,6 @@ public interface DataProvider {
      * @return 一个包含历史数据的 BarSeries 对象
      */
     BarSeries getHistoricalData(Ticker ticker, LocalDate startDate, LocalDate endDate, TimeFrame timeFrame);
+
+    String getCompanyName(Ticker ticker) throws IOException;
 }

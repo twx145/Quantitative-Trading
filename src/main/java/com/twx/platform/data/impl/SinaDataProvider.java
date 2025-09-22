@@ -10,8 +10,12 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.BaseBarSeries;
 import org.ta4j.core.num.DoubleNum;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -106,5 +110,28 @@ public class SinaDataProvider implements DataProvider {
         }
 
         return series;
+    }
+
+    @Override
+    public String getCompanyName(Ticker ticker) throws IOException {
+        String urlString = "http://hq.sinajs.cn/list=" + ticker.toString();
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+
+        // ★ 核心修复：添加浏览器头信息来“伪装”自己
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
+        conn.setRequestProperty("Referer", "https://finance.sina.com.cn/");
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "GBK"))) {
+            String inputLine = in.readLine();
+            if (inputLine != null && !inputLine.contains("\"\"")) {
+                String dataPart = inputLine.substring(inputLine.indexOf("\"") + 1, inputLine.lastIndexOf("\""));
+                String[] parts = dataPart.split(",");
+                return parts[0];
+            } else {
+                throw new IOException("无法找到该股票代码或返回数据为空: " + ticker.toString());
+            }
+        }
     }
 }
