@@ -79,20 +79,12 @@
             <artifactId>json</artifactId>
             <version>20231013</version>
         </dependency>
+
+
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <includes>
-                    <include>**/*.fxml</include>
-                    <include>**/*.css</include>
-                    <include>**/*.png</include>
-                    <include>**/*.ico</include> <!-- ★ 确保这一行存在 -->
-                </includes>
-            </resource>
-        </resources>
+
         <plugins>
             <!-- Maven 编译器插件，设置 Java 版本 -->
             <plugin>
@@ -121,10 +113,11 @@
                 </executions>
             </plugin>
 
+            <!-- 打包可执行 exe（Windows） -->
             <plugin>
                 <groupId>io.github.fvarrui</groupId>
                 <artifactId>javapackager</artifactId>
-                <version>1.6.7</version>
+                <version>1.7.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -132,15 +125,14 @@
                             <goal>package</goal>
                         </goals>
                         <configuration>
-
                             <mainClass>com.twx.platform.ui.Main</mainClass>
-
                             <bundleJre>true</bundleJre>
-                            <generateInstaller>true</generateInstaller>
+                            <generateInstaller>false</generateInstaller>
                             <administratorRequired>false</administratorRequired>
                             <platform>windows</platform>
-
-
+                            <winConfig>
+                                <icoFile>src/main/resources/com/twx/platform/ui/windows/icon.ico</icoFile>
+                            </winConfig>
                         </configuration>
                     </execution>
                 </executions>
