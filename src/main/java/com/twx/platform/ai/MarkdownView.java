@@ -5,13 +5,13 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
-import javafx.application.Platform;
 import javafx.concurrent.Worker;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -42,8 +42,8 @@ public class MarkdownView extends StackPane {
         // --- 1. 尺寸与样式初始化 ---
         // 初始尺寸约束，防止组件在自适应前无限扩张
         this.webView.setMinSize(50, 20);
-        this.webView.setPrefSize(250, 50); // 初始首选宽度与AI面板宽度匹配
-        this.webView.setMaxWidth(250);
+        this.webView.setPrefSize(240, 50); // 初始首选宽度与AI面板宽度匹配
+        this.webView.setMaxWidth(240);
         this.webView.setContextMenuEnabled(false); // 禁用右键菜单
 
         // 强制设置 WebView 节点背景为透明
@@ -120,7 +120,7 @@ public class MarkdownView extends StackPane {
      * @return 完整的 HTML 字符串
      */
     private String buildFullHtml(String contentHtml) {
-        String mainCssPath = getClass().getResource("/com/twx/platform/ui/style.css").toExternalForm();
+        String mainCssPath = Objects.requireNonNull(getClass().getResource("/com/twx/platform/ui/style.css")).toExternalForm();
         String bodyClass = isDarkMode ? "theme-dark" : "";
 
         return """
@@ -151,23 +151,9 @@ public class MarkdownView extends StackPane {
     }
 
     /**
-     * 一个内部类，专门用于从 JavaScript 进行回调。
-     * 其 public 方法可以被 JavaScript 环境安全调用。
-     */
-    public static class JavaCallback {
-        private final Consumer<Double> heightConsumer;
-
-        public JavaCallback(Consumer<Double> heightConsumer) {
-            this.heightConsumer = heightConsumer;
-        }
-
-        /**
-         * 此方法由 JS 调用: `window.javaCallback.onHeightReceived(...)`
-         * @param height JS 计算出的 document.body.scrollHeight
+         * 一个内部类，专门用于从 JavaScript 进行回调。
+         * 其 public 方法可以被 JavaScript 环境安全调用。
          */
-        public void onHeightReceived(double height) {
-            // 回调默认已在 JavaFX 应用线程上，为保险起见仍可使用 runLater
-            Platform.runLater(() -> heightConsumer.accept(height));
-        }
+        public record JavaCallback(Consumer<Double> heightConsumer) {
     }
 }

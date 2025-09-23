@@ -7,7 +7,6 @@ import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.MACDIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MacdTechnique implements AnalysisTechnique {

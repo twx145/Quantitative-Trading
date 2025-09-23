@@ -12,7 +12,6 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.num.Num;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class BollingerBandsTechnique implements AnalysisTechnique {

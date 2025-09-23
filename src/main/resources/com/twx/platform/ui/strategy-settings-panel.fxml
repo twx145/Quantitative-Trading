@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<!-- 【修改】为根 VBox 添加 styleClass -->
+<VBox spacing="10.0" styleClass="side-panel, strategy-settings-panel" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+    </padding>
+    <Label styleClass="panel-title" text="策略选择与参数"/>
+    <Separator/>
+
+    <!-- 策略选择区域 -->
+    <Label style="-fx-font-weight: bold;" text="交易策略"/>
+    <VBox fx:id="strategySelectionBox" spacing="5.0">
+        <padding>
+            <Insets left="10.0"/>
+        </padding>
+        <RadioButton fx:id="strategyRadioMA" text="均线交叉策略"/>
+        <RadioButton fx:id="strategyRadioRSI" text="RSI策略"/>
+        <RadioButton fx:id="strategyRadioBB" text="布林带策略"/>
+        <RadioButton fx:id="strategyRadioMACD" text="MACD策略"/>
+    </VBox>
+    <Separator/>
+
+    <!-- 参数调整区域 (使用 StackPane 来切换) -->
+    <Label style="-fx-font-weight: bold;" text="策略参数"/>
+    <StackPane fx:id="paramsStackPane">
+        <!-- 均线策略参数面板 -->
+        <!-- 【修改】为 GridPane 添加 styleClass -->
+        <GridPane fx:id="maParamsPane" styleClass="strategy-params-pane" hgap="5.0" vgap="5.0">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" prefWidth="80.0"/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <Label text="短期周期:" GridPane.rowIndex="0"/>
+            <TextField fx:id="strategyShortMaField" prefWidth="60" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+            <Label text="长期周期:" GridPane.rowIndex="1"/>
+            <TextField fx:id="strategyLongMaField" prefWidth="60" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+        </GridPane>
+
+        <!-- RSI 策略参数面板 -->
+        <GridPane fx:id="rsiParamsPane" styleClass="strategy-params-pane" hgap="5.0" vgap="5.0" managed="false" visible="false">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" prefWidth="80.0"/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <Label text="RSI 周期:" GridPane.rowIndex="0"/>
+            <TextField fx:id="strategyRsiPeriodField" prefWidth="60" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        </GridPane>
+
+        <!-- 布林带策略参数面板 -->
+        <GridPane fx:id="bbandsParamsPane" styleClass="strategy-params-pane" hgap="5.0" vgap="5.0" managed="false" visible="false">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" prefWidth="80.0"/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <Label text="BBands 周期:" GridPane.rowIndex="0"/>
+            <TextField fx:id="strategyBbandsPeriodField" prefWidth="60" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+        </GridPane>
+
+        <!-- MACD 策略信息面板 -->
+        <GridPane fx:id="macdInfoPane" styleClass="strategy-params-pane" hgap="5.0" vgap="5.0" managed="false" visible="false">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" prefWidth="100.0"/>
+                <ColumnConstraints/>
+            </columnConstraints>
+            <Label text="参数 (固定):" style="-fx-font-weight: bold;" GridPane.columnSpan="2"/>
+            <Label text="快线 (Short):" GridPane.rowIndex="1"/>
+            <Label text="12" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+            <Label text="慢线 (Long):" GridPane.rowIndex="2"/>
+            <Label text="26" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+            <Label text="信号线 (Signal):" GridPane.rowIndex="3"/>
+            <Label text="9" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        </GridPane>
+    </StackPane>
+</VBox>

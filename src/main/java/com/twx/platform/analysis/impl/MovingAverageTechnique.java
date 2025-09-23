@@ -6,7 +6,6 @@ import org.ta4j.core.BarSeries;
 import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MovingAverageTechnique implements AnalysisTechnique {

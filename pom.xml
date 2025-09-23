@@ -6,7 +6,7 @@
 
     <groupId>com.twx</groupId>
     <artifactId>quantitative-trading</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -55,17 +55,17 @@
             <version>17.0.10</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>17.0.10</version> <!-- 使用与您项目匹配的版本 -->
+        </dependency>
+
         <!-- JavaFX FXML 库 -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>17.0.10</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-web</artifactId>
-            <version>17.0.10</version> <!-- 请确保版本号与您其他的 javafx 依赖一致 -->
         </dependency>
 
         <dependency>

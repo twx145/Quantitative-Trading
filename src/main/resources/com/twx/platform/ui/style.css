@@ -67,7 +67,44 @@
 .status-bar-button:selected .svg-icon, .side-tool-button:selected .svg-icon { -fx-fill: -fx-theme-text-primary; }
 
 .svg-icon { -fx-fill: -fx-theme-text-secondary; }
-.side-tool-button .svg-icon { -fx-scale-x: 1.3; -fx-scale-y: 1.3; }
+.side-tool-button {
+    /* --- 1. 强制所有按钮大小一致 --- */
+    /* 将最小、最大和首选尺寸都设为同一个值，确保按钮大小固定 */
+    -fx-min-width: 40px;
+    -fx-max-width: 40px;
+    -fx-pref-width: 40px;
+    -fx-min-height: 40px;
+    -fx-max-height: 40px;
+    -fx-pref-height: 40px;
+
+    /* --- 2. 增加按钮之间的垂直间距 --- */
+    /* 在每个按钮下方添加 8px 的外边距，从而将它们推开 */
+    -fx-margin: 0 0 16px 0; /* 语法: top, right, bottom, left */
+
+    /* --- 其他原有样式 (可选，根据你的设计保留) --- */
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-padding: 8px;
+}
+.side-tool-button .svg-icon {
+    -fx-scale-x: 1.3;
+    -fx-scale-y: 1.3;
+}
+/* 鼠标悬停时的效果 */
+.side-tool-button:hover {
+    -fx-background-color: #e0e0e0;
+}
+
+/* 按钮被选中时的效果 */
+.side-tool-button:selected {
+    -fx-background-color: #cce5ff; /* 一个柔和的蓝色表示选中 */
+}
+
+/* 按钮选中时，内部SVG图标的颜色 */
+.side-tool-button:selected .svg-icon {
+    -fx-fill: #0056b3; /* 深蓝色 */
+}
 .window-button .svg-path { -fx-stroke: -fx-theme-text-secondary; -fx-stroke-width: 1.5; }
 .window-button:hover .svg-path, .side-tool-button:hover .svg-icon, .status-bar-button:hover .svg-icon {
     -fx-stroke: -fx-theme-text-primary;
@@ -192,23 +229,291 @@
 .theme-dark .user-bubble { -fx-background-color: -fx-theme-accent-hover; }
 .theme-dark .ai-bubble { -fx-background-color: -fx-theme-accent-grey; }
 
-/* ==========================================================================
-   9. 自定义对话框
-   ========================================================================== */
-.dialog-pane {
-    -fx-background-color: -fx-theme-control-bg;
-    -fx-background-radius: 8px;
-    -fx-border-width: 1px;
-    -fx-border-color: -fx-theme-border;
-    -fx-border-radius: 8px;
-}
-.dialog-title { -fx-font-size: 16px; -fx-font-weight: bold; }
-.dialog-content { -fx-font-size: 13px; -fx-text-fill: -fx-theme-text-secondary; }
-.dialog-icon { -fx-scale-x: 1.8; -fx-scale-y: 1.8; }
-.dialog-icon-info { -fx-fill: -fx-theme-accent; }
-.dialog-icon-warning { -fx-fill: #f39c12; }
-.dialog-icon-error { -fx-fill: -fx-theme-negative-color; }
-.dialog-button { -fx-padding: 6px 16px; -fx-cursor: hand; } /* Uses general .button styles */
 
-/* --- Dark Theme Overrides for Dialog --- */
-.theme-dark .dialog-pane { -fx-background-color: derive(-fx-theme-base-bg, 10%); }
+/* ==========================================================================
+   10. 策略面板 (Strategy Panel) - 新增
+   ========================================================================== */
+
+/* 设置滑出面板的宽度 */
+.strategy-settings-panel {
+    -fx-pref-width: 240px;
+    -fx-min-width: 240px;
+}
+
+/* 策略选择的单选按钮样式 */
+.strategy-settings-panel .radio-button {
+    -fx-padding: 4px 0; /* 增加一点垂直间距 */
+}
+
+.strategy-settings-panel .radio-button .text {
+    -fx-fill: -fx-theme-text-primary;
+}
+
+.strategy-settings-panel .radio-button .radio {
+    -fx-border-width: 2px;
+    -fx-border-color: -fx-theme-border;
+    -fx-background-color: -fx-theme-control-bg;
+    -fx-padding: 3px; /* 控制点的大小 */
+}
+
+.strategy-settings-panel .radio-button:selected .radio {
+    -fx-border-color: -fx-theme-accent;
+}
+
+.strategy-settings-panel .radio-button .radio .dot {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-mark-highlight-color: transparent; /* 移除默认高亮 */
+}
+
+.strategy-settings-panel .radio-button:selected .radio .dot {
+    -fx-background-color: -fx-theme-accent; /* 选中时显示实心点 */
+}
+
+/* 参数调整区域的网格布局样式 */
+.strategy-params-pane {
+    -fx-padding: 5px 0 0 15px; /* 顶部和左侧留出空间 */
+}
+
+
+/* --- Dark Theme Overrides for Strategy Panel --- */
+.theme-dark .strategy-settings-panel .radio-button:selected .radio {
+    -fx-border-color: -fx-theme-accent-hover;
+}
+
+.theme-dark .strategy-settings-panel .radio-button:selected .radio .dot {
+    -fx-background-color: -fx-theme-accent-hover;
+}
+
+/* ==========================================================================
+   11. 菜单栏 (MenuBar) - 新增
+   ========================================================================== */
+
+/* 1. 主菜单栏本身 */
+.menu-bar {
+    -fx-background-color: derive(-fx-theme-base-bg, -2%);
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: -fx-theme-border;
+    -fx-padding: 2px 4px;
+}
+.theme-dark .menu-bar {
+    -fx-background-color: derive(-fx-theme-base-bg, 5%);
+}
+
+/* 2. 顶层菜单项 (文件, 视图, ...) */
+.menu-bar .menu {
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 4px;
+    -fx-background-color: transparent;
+}
+.menu-bar .menu .label {
+    -fx-text-fill: -fx-theme-text-primary;
+}
+
+/* 顶层菜单项的悬停和打开状态 */
+.menu-bar .menu:hover,
+.menu-bar .menu:showing {
+    -fx-background-color: -fx-theme-accent-grey;
+}
+.theme-dark .menu-bar .menu:hover,
+.theme-dark .menu-bar .menu:showing {
+    -fx-background-color: derive(-fx-theme-control-bg, 15%);
+}
+
+/* 3. 下拉菜单的弹出框 */
+.context-menu {
+    -fx-background-color: -fx-theme-control-bg;
+    -fx-background-radius: 4px;
+    -fx-border-color: -fx-theme-border;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+    -fx-padding: 5px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 2);
+}
+.theme-dark .context-menu {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 0, 3);
+}
+
+/* 4. 下拉菜单中的项目 */
+.menu-item {
+    -fx-background-radius: 4px;
+    -fx-padding: 6px 10px;
+}
+.menu-item .label {
+    -fx-text-fill: -fx-theme-text-primary;
+}
+
+/* 下拉菜单项目的悬停/聚焦状态 */
+.menu-item:focused {
+    -fx-background-color: -fx-theme-accent;
+}
+.menu-item:focused .label {
+    -fx-text-fill: -fx-theme-text-on-accent;
+}
+/* Radio/Check 图标在悬停时也要变白 */
+.menu-item:focused .graphic {
+    -fx-fill: -fx-theme-text-on-accent;
+}
+.theme-dark .menu-item:focused {
+    -fx-background-color: -fx-theme-accent-hover;
+}
+
+/* 5. 分隔线 */
+.separator-menu-item .line {
+    -fx-border-color: -fx-theme-border;
+    -fx-border-width: 1px 0 0 0;
+}
+.separator-menu-item {
+    -fx-padding: 6px 0;
+}
+
+/* 6. RadioMenuItem 的图标 */
+.radio-menu-item .graphic {
+    -fx-shape: "M 100 100 A 50 50 0 1 1 100 100 Z"; /* 这是一个圆 */
+    -fx-border-color: -fx-theme-text-secondary;
+    -fx-border-width: 2px;
+    -fx-scale-shape: false;
+    -fx-padding: 6px;
+}
+.radio-menu-item:selected .graphic {
+    -fx-background-color: -fx-theme-text-secondary;
+    -fx-background-insets: 2px;
+}
+
+.radio-menu-item:focused .graphic {
+    -fx-border-color: -fx-theme-text-on-accent;
+}
+.radio-menu-item:focused:selected .graphic {
+    -fx-background-color: -fx-theme-text-on-accent;
+}
+
+/* === [FINAL] Modern Custom Dialog Styling === */
+
+/* --- Main Container --- */
+.dialog-pane {
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-background-color: #F8F9FA; /* Off-white for a softer look */
+}
+.dialog-pane.theme-dark {
+    -fx-background-color: #2C2F33; /* A deep charcoal */
+}
+
+/* --- Header Section --- */
+.dialog-header {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12px 12px 0 0;
+    -fx-padding: 20px 25px;
+    -fx-border-width: 0 0 1px 0;
+    -fx-border-color: #EDEEEF;
+}
+.dialog-pane.theme-dark .dialog-header {
+    -fx-background-color: #23272A;
+    -fx-border-color: #383b3e;
+}
+
+/* --- Body / Content Section --- */
+.dialog-body {
+    -fx-padding: 25px;
+}
+
+/* --- Footer / Button Bar Section --- */
+.dialog-footer {
+    -fx-padding: 0 25px 20px 25px;
+}
+
+/* --- Icons --- */
+.dialog-icon {
+    -fx-min-width: 28px; -fx-max-width: 28px;
+    -fx-min-height: 28px; -fx-max-height: 28px;
+}
+.dialog-icon-info    { -fx-fill: #17A2B8; }
+.dialog-icon-warning { -fx-fill: #FFC107; }
+.dialog-icon-error   { -fx-fill: #DC3545; }
+
+/* --- Typography --- */
+.dialog-title {
+    -fx-font-size: 1.3em;
+    -fx-font-weight: 600; /* semi-bold */
+    -fx-text-fill: #212529;
+}
+.dialog-pane.theme-dark .dialog-title {
+    -fx-text-fill: #FFFFFF;
+}
+.dialog-content {
+    -fx-font-size: 1.05em;
+    -fx-text-fill: #495057;
+    -fx-line-spacing: 4px; /* Improves readability */
+}
+.dialog-pane.theme-dark .dialog-content {
+    -fx-text-fill: #B9BBBE;
+}
+
+/* --- Buttons --- */
+.dialog-button {
+    -fx-background-radius: 8px;
+    -fx-font-weight: bold;
+    -fx-font-size: 0.95em;
+    -fx-padding: 10px 22px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);
+    -fx-border-width: 1.5px;
+    -fx-border-style: solid;
+}
+
+/* Primary Button (e.g., OK) */
+.dialog-button-primary {
+    -fx-background-color: #007BFF;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+}
+.dialog-button-primary:hover {
+    -fx-background-color: #0069D9;
+}
+.dialog-pane.theme-dark .dialog-button-primary {
+    -fx-background-color: #0D6EFD;
+}
+.dialog-pane.theme-dark .dialog-button-primary:hover {
+    -fx-background-color: #3D8BFF;
+}
+
+/* Secondary Button (e.g., Cancel) */
+.dialog-button-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6C757D;
+    -fx-border-color: #CED4DA;
+}
+.dialog-button-secondary:hover {
+    -fx-background-color: #E9ECEF;
+}
+.dialog-pane.theme-dark .dialog-button-secondary {
+    -fx-text-fill: #ADB5BD;
+    -fx-border-color: #555A5F;
+}
+.dialog-pane.theme-dark .dialog-button-secondary:hover {
+    -fx-background-color: #3A3F44;
+}
+
+/* --- Text Input --- */
+.dialog-text-input {
+    -fx-pref-width: 300px;
+    -fx-font-size: 1.1em;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #CED4DA;
+    -fx-padding: 8px;
+}
+.dialog-text-input:focused {
+    -fx-border-color: #80BDFF;
+    -fx-effect: dropshadow(gaussian, rgba(0,123,255,0.25), 5, 0, 0, 0);
+}
+.dialog-pane.theme-dark .dialog-text-input {
+    -fx-background-color: #40444B;
+    -fx-text-fill: #DCDDDE;
+    -fx-border-color: #212326;
+    -fx-prompt-text-fill: #72767D;
+}
+.dialog-pane.theme-dark .dialog-text-input:focused {
+    -fx-border-color: #0D6EFD;
+    -fx-effect: dropshadow(gaussian, rgba(13,110,253,0.25), 5, 0, 0, 0);
+}

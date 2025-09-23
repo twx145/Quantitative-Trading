@@ -8,7 +8,12 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.SVGPath?>
 <BorderPane fx:id="rootPane" styleClass="body" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.twx.platform.ui.UIController">
-    <!-- 左侧工具栏 -->
+    <!-- 【新增】顶部标准菜单栏 -->
+    <top>
+        <MenuBar fx:id="menuBar" />
+    </top>
+
+    <!-- 左侧工具栏 (保持不变) -->
     <left>
         <VBox fx:id="leftToolBar" alignment="TOP_CENTER" styleClass="side-button-bar">
             <ToggleButton fx:id="aiAssistantToggle" styleClass="side-tool-button">
@@ -16,15 +21,26 @@
             </ToggleButton>
         </VBox>
     </left>
-    <!-- 右侧工具栏 -->
+    <!-- 右侧工具栏 (保持不变) -->
+    <!-- 在你的主 FXML 的 <right> 部分, 用下面的代码完全替换 -->
     <right>
         <VBox fx:id="rightToolBar" alignment="TOP_CENTER" styleClass="side-button-bar">
+
             <ToggleButton fx:id="chartSettingsToggle" styleClass="side-tool-button">
-                <graphic><SVGPath content="M 19.44 12.99 L 19.44 11.01 C 19.44 10.64 19.24 10.3 18.92 10.11 L 16.88 8.9 C 16.63 8.75 16.44 8.56 16.29 8.32 L 15.08 6.28 C 14.89 5.96 14.55 5.76 14.18 5.76 L 12.2 5.76 C 11.83 5.76 11.49 5.96 11.3 6.28 L 10.09 8.32 C 9.94 8.56 9.75 8.75 9.5 8.9 L 7.46 10.11 C 7.14 10.3 6.94 10.64 6.94 11.01 L 6.94 12.99 C 6.94 13.36 7.14 13.7 7.46 13.89 L 9.5 15.1 C 9.75 15.25 9.94 15.44 10.09 15.68 L 11.3 17.72 C 11.49 18.04 11.83 18.24 12.2 18.24 L 14.18 18.24 C 14.55 18.24 14.89 18.04 15.08 17.72 L 16.29 15.68 C 16.44 15.44 16.63 15.25 16.88 15.1 L 18.92 13.89 C 19.24 13.7 19.44 13.36 19.44 12.99 Z M 13.2 14.4 C 11.93 14.4 10.89 13.36 10.89 12.09 C 10.89 10.82 11.93 9.78 13.2 9.78 C 14.47 9.78 15.51 10.82 15.51 12.09 C 15.51 13.36 14.47 14.4 13.2 14.4 Z" styleClass="svg-icon" /></graphic>
+                <graphic>
+                    <SVGPath content="M4 18 L8 14 L12 16 L16 12 L20 14 M6 20 V18 M10 20 V19 M14 20 V17 M18 20 V18" styleClass="svg-icon" />
+                </graphic>
             </ToggleButton>
+
+            <ToggleButton fx:id="strategySettingsToggle" styleClass="side-tool-button">
+                <graphic>
+                    <SVGPath content="M9 2 H15 V6 H9 Z M12 6 V10 M12 10 H5 V14 H2 V18 H8 V14 H5 M12 10 H19 V14 H16 V18 H22 V14 H19" styleClass="svg-icon" />
+                </graphic>
+            </ToggleButton>
+
         </VBox>
     </right>
-    <!-- 底部状态栏 -->
+    <!-- 底部状态栏 (保持不变) -->
     <bottom>
         <HBox alignment="CENTER_LEFT" styleClass="bottom-status-bar">
             <ToggleButton fx:id="resultsToggle" styleClass="status-bar-button">
@@ -32,47 +48,39 @@
             </ToggleButton>
         </HBox>
     </bottom>
-    <!-- 中心内容区 (初始状态) -->
+    <!-- 中心内容区 -->
     <center>
         <BorderPane>
             <top>
-                <VBox>
-                    <HBox alignment="CENTER_LEFT" prefHeight="40.0" styleClass="custom-title-bar">
-                        <padding><Insets left="15.0" right="15.0" /></padding>
-                        <StackPane fx:id="menuButton" onMouseClicked="#handleMenuButtonClick" styleClass="window-button">
-                            <SVGPath content="M2,2 H17 M2,6.5 H17 M2,11 H17 M2,15.5 H17" styleClass="svg-path" />
-                        </StackPane>
-                        <Pane HBox.hgrow="ALWAYS" />
-                    </HBox>
-                    <VBox spacing="10.0">
-                        <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
-                        <GridPane hgap="10.0" vgap="10.0">
-                            <columnConstraints>
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
-                            </columnConstraints>
-                            <Label text="股票代码:" />
-                            <TextField fx:id="tickerField" text="sh600519" GridPane.columnIndex="1" />
-                            <Label text="初始资金:" GridPane.columnIndex="2" />
-                            <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="3" />
-                            <Label text="开始日期:" GridPane.rowIndex="1" />
-                            <DatePicker fx:id="startDatePicker" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                            <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                            <DatePicker fx:id="endDatePicker" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                            <Label text="仓位策略:" GridPane.rowIndex="2" />
-                            <ComboBox fx:id="positionSizerComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                            <Label fx:id="sizerParamLabel" text="参数:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                            <TextField fx:id="sizerParamField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                            <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="4" GridPane.rowIndex="2" />
-                        </GridPane>
-                    </VBox>
+                <!-- 【修改】移除了包含旧菜单按钮的HBox，只保留包含GridPane的VBox -->
+                <VBox spacing="10.0">
+                    <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
+                    <GridPane hgap="10.0" vgap="10.0">
+                        <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                        </columnConstraints>
+                        <Label text="股票代码:" />
+                        <TextField fx:id="tickerField" text="sh600519" GridPane.columnIndex="1" />
+                        <Label text="初始资金:" GridPane.columnIndex="2" />
+                        <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="3" />
+                        <Label text="开始日期:" GridPane.rowIndex="1" />
+                        <DatePicker fx:id="startDatePicker" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <DatePicker fx:id="endDatePicker" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                        <Label text="仓位策略:" GridPane.rowIndex="2" />
+                        <ComboBox fx:id="positionSizerComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Label fx:id="sizerParamLabel" text="参数:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                        <TextField fx:id="sizerParamField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                        <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+                    </GridPane>
                 </VBox>
             </top>
             <center>
-                <!-- 【关键变更】X轴和Y轴都改为 NumberAxis 并赋予 fx:id -->
+                <!-- 图表部分 (保持不变) -->
                 <LineChart fx:id="priceChart" animated="false" title="股价走势与交易点">
                     <xAxis><NumberAxis fx:id="xAxis" side="BOTTOM" label="日期" animated="false" forceZeroInRange="false" /></xAxis>
                     <yAxis><NumberAxis fx:id="yAxis" side="LEFT" label="价格" animated="false" /></yAxis>
