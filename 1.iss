@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "quantitative-trading"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.2.1"
 #define MyAppId     "{5F721783-DE1D-4006-8E93-310BA5BD4E4D}"
 
 [Setup]
@@ -16,7 +16,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=no
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}-setup
 OutputDir=target/
-SetupIconFile=D:\quantitave-analysis\quantitative-trading\src\main\resources\com\twx\platform\ui\windows\icon.ico
+SetupIconFile=D:\quantitative-analysis\quantitative-trading\src\main\resources\com\twx\platform\ui\windows\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -32,7 +32,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; !!! 请把下面路径改成你真实的构建输出目录 !!!
-Source: "D:\quantitave-analysis\quantitative-trading\target\quantitative-trading\*"; \
+Source: "D:\quantitative-analysis\quantitative-trading\target\quantitative-trading\*"; \
         DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]

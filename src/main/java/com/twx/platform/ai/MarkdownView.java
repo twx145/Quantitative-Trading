@@ -1,23 +1,25 @@
 // src/main/java/com/twx/platform/ai/MarkdownView.java
+// 【交互升级版】请用这份代码完整替换您现有的同名文件
+
 package com.twx.platform.ai;
 
+import com.twx.platform.ui.CustomDialog; // <<< 新增导入
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
-import javafx.concurrent.Worker;
+import javafx.application.Platform;
 import javafx.scene.layout.StackPane;
-import javafx.scene.web.WebEngine;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
-import netscape.javascript.JSObject;
+import javafx.stage.Stage; // <<< 新增导入
 
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
- * 一个用于解析和显示 Markdown 文本的自定义 JavaFX 组件。
- * 它实现了高度自适应，并能正确处理亮色/暗色主题。
- * 内部使用 WebView 来渲染内容。
+ * 【交互升级版 v2.2】一个稳定、可靠且美观的 Markdown 显示组件。
+ * 交互方式升级：使用右键菜单调用统一样式的对话框来复制文本。
  */
 public class MarkdownView extends StackPane {
 
@@ -26,12 +28,21 @@ public class MarkdownView extends StackPane {
 
     private final WebView webView;
     private final boolean isDarkMode;
+    private String rawMarkdownContent = "";
 
-    // 使用静态初始化块，高效地创建 Markdown 解析器和渲染器的单例
+    private static final Text heightCalculator = new Text();
+    private static final double FIXED_WIDTH = 240.0;
+    private static final double PADDING = 12.0 * 2;
+    private static final double LINE_SPACING = 5;
+
     static {
         MutableDataSet options = new MutableDataSet();
         PARSER = Parser.builder(options).build();
         RENDERER = HtmlRenderer.builder(options).build();
+
+        heightCalculator.setFont(Font.font("System", 13));
+        heightCalculator.setWrappingWidth(FIXED_WIDTH - PADDING);
+        heightCalculator.setLineSpacing(LINE_SPACING);
     }
 
     public MarkdownView(boolean isDarkMode) {
@@ -39,87 +50,66 @@ public class MarkdownView extends StackPane {
         this.isDarkMode = isDarkMode;
         this.webView = new WebView();
 
-        // --- 1. 尺寸与样式初始化 ---
-        // 初始尺寸约束，防止组件在自适应前无限扩张
-        this.webView.setMinSize(50, 20);
-        this.webView.setPrefSize(240, 50); // 初始首选宽度与AI面板宽度匹配
-        this.webView.setMaxWidth(240);
-        this.webView.setContextMenuEnabled(false); // 禁用右键菜单
+        this.setPrefWidth(FIXED_WIDTH);
+        this.setMaxWidth(FIXED_WIDTH);
 
-        // 强制设置 WebView 节点背景为透明
+        this.webView.setPrefWidth(FIXED_WIDTH);
+        this.webView.setMaxWidth(FIXED_WIDTH);
+        this.webView.setContextMenuEnabled(false);
         this.webView.setStyle("-fx-background-color: transparent;");
+        this.webView.setMouseTransparent(true);
 
         this.getChildren().add(this.webView);
 
-        // --- 2. 设置监听器，实现高度自适应和背景修复 ---
-        setupWebViewListeners();
-    }
-
-    /**
-     * 设置 WebView 的核心监听器。
-     * 监听加载状态，在加载完成后执行 JS 回调以实现高度自适应和样式修复。
-     */
-    private void setupWebViewListeners() {
-        final WebEngine engine = webView.getEngine();
-
-        engine.getLoadWorker().stateProperty().addListener(
-                (obs, oldState, newState) -> {
-                    if (newState == Worker.State.SUCCEEDED) {
-                        // --- A. 修复暗色模式下的白色背景 ---
-                        // 强制将HTML内部背景也设为透明
-                        engine.executeScript(
-                                "document.documentElement.style.backgroundColor = 'transparent'; " +
-                                        "document.body.style.backgroundColor = 'transparent';"
-                        );
-
-                        // --- B. 实现高度自适应 ---
-                        // 创建一个 Java 回调对象
-                        JavaCallback javaCallback = new JavaCallback(height -> {
-                            // 收到 JS 返回的高度后，应用到 WebView 和 StackPane
-                            double newHeight = height + 5; // 加一点 buffer 作为边距
-                            double finalHeight = Math.min(newHeight, 400.0); // 限制最大高度为400px
-
-                            webView.setPrefHeight(finalHeight);
-                            this.setPrefHeight(finalHeight);
-                        });
-
-                        // 将 Java 回调对象暴露给 JavaScript
-                        JSObject window = (JSObject) engine.executeScript("window");
-                        window.setMember("javaCallback", javaCallback);
-
-                        // 使用 requestAnimationFrame 在下一个渲染帧获取最准确的高度
-                        String script = """
-                                    function getHeight() {
-                                      // 使用 scrollHeight 来获取内容的总高度
-                                      return document.body.scrollHeight;
-                                    }
-                                    requestAnimationFrame(function() {
-                                      javaCallback.onHeightReceived(getHeight());
-                                    });
-                                    """;
-                        engine.executeScript(script);
-                    }
+        // =================================================================================
+        // >>> 核心修改区域：从左键单击改为右键请求，并调用新的CustomDialog <<<
+        // =================================================================================
+        this.setOnContextMenuRequested(event -> {
+            if (!rawMarkdownContent.isEmpty()) {
+                Stage owner = (Stage) this.getScene().getWindow();
+                if (owner != null) {
+                    CustomDialog.showCopyableText(
+                            owner,
+                            "复制内容",
+                            "您可以从下面的文本框中复制AI回复的全部内容。",
+                            rawMarkdownContent,
+                            isDarkMode
+                    );
                 }
-        );
+                event.consume(); // 消费事件，防止系统默认的上下文菜单出现
+            }
+        });
     }
 
-    /**
-     * 对外暴露的核心方法：更新显示的内容。
-     * @param markdownContent Markdown 格式的字符串
-     */
     public void updateContent(String markdownContent) {
+        // ... [此方法保持不变] ...
+        this.rawMarkdownContent = markdownContent;
+
+        if (markdownContent == null || markdownContent.isBlank()) {
+            Platform.runLater(() -> {
+                webView.getEngine().loadContent("");
+                this.setPrefHeight(0);
+            });
+            return;
+        }
+
+        String plainText = markdownContent.replaceAll("`{1,3}[^`]*`{1,3}", " code ")
+                .replaceAll("[*#_>-]", "");
+        heightCalculator.setText(plainText);
+        double requiredHeight = heightCalculator.getLayoutBounds().getHeight() + 30;
+
         Node document = PARSER.parse(markdownContent);
         String contentHtml = RENDERER.render(document);
         String fullHtml = buildFullHtml(contentHtml);
-        this.webView.getEngine().loadContent(fullHtml, "text/html");
+
+        Platform.runLater(() -> {
+            this.setPrefHeight(requiredHeight);
+            webView.getEngine().loadContent(fullHtml);
+        });
     }
 
-    /**
-     * 使用 Java 文本块构建一个包含主题样式和内容的完整 HTML 页面。
-     * @param contentHtml Markdown 解析后的 HTML 内容
-     * @return 完整的 HTML 字符串
-     */
     private String buildFullHtml(String contentHtml) {
+        // ... [此方法保持不变] ...
         String mainCssPath = Objects.requireNonNull(getClass().getResource("/com/twx/platform/ui/style.css")).toExternalForm();
         String bodyClass = isDarkMode ? "theme-dark" : "";
 
@@ -130,15 +120,34 @@ public class MarkdownView extends StackPane {
                    <meta charset="UTF-8">
                    <link rel="stylesheet" type="text/css" href="%s">
                    <style>
-                     html, body { margin: 0; padding: 0; height: auto; font-size: 12px; }
-                     .content-wrapper { padding: 4px 8px; color: -fx-theme-text-primary; }
-                     p { line-height: 1.6; }
-                     h1, h2, h3 { border-bottom: 1px solid -fx-theme-border; padding-bottom: 4px; }
-                     pre { background-color: -fx-theme-base-bg; padding: 10px; border-radius: 4px; border: 1px solid -fx-theme-border; overflow-x: auto; }
-                     code { font-family: Consolas, 'Courier New', monospace; background-color: -fx-theme-accent-grey; padding: 2px 5px; border-radius: 3px; color: -fx-theme-text-primary; }
-                     pre > code { background-color: transparent; padding: 0; }
-                     blockquote { border-left: 3px solid -fx-theme-border; padding-left: 12px; color: -fx-theme-text-secondary; margin-left: 0; }
-                     ul, ol { padding-left: 20px; }
+                     :root {
+                       --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                       --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+                       --font-size-base: 13px;
+                       --line-height-base: 1.6;
+                       --border-radius: 6px;
+                       --text-primary: -fx-theme-text-primary;
+                       --text-secondary: -fx-theme-text-secondary;
+                       --text-link: -fx-theme-accent-primary;
+                       --bg-primary: transparent;
+                       --bg-secondary: -fx-theme-base-bg;
+                       --bg-code: -fx-theme-accent-grey;
+                       --border-color: -fx-theme-border;
+                     }
+                     html, body { margin: 0; padding: 0; font-family: var(--font-family-sans); font-size: var(--font-size-base); line-height: var(--line-height-base); color: var(--text-primary); background-color: var(--bg-primary); word-wrap: break-word; overflow-wrap: break-word; overflow: hidden; }
+                     .content-wrapper { padding: 8px 12px; }
+                     p { margin-top: 0; margin-bottom: 12px; }
+                     a { color: var(--text-link); text-decoration: none; }
+                     a:hover { text-decoration: underline; }
+                     h1, h2, h3, h4, h5, h6 { margin: 20px 0 10px 0; font-weight: 600; line-height: 1.3; }
+                     h2 { font-size: 1.4em; }
+                     h3 { font-size: 1.2em; }
+                     pre { background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 12px; font-family: var(--font-family-mono); font-size: 0.95em; overflow-x: auto; white-space: pre-wrap; word-break: break-all; margin-bottom: 12px; }
+                     code { font-family: var(--font-family-mono); background-color: var(--bg-code); color: var(--text-primary); padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; }
+                     pre > code { background-color: transparent; padding: 0; border-radius: 0; font-size: inherit; }
+                     blockquote { margin: 0 0 12px 0; padding: 4px 12px; border-left: 3px solid var(--border-color); color: var(--text-secondary); }
+                     ul, ol { margin: 0 0 12px 0; padding-left: 24px; }
+                     li { margin-bottom: 4px; }
                    </style>
                  </head>
                  <body class="%s">
@@ -148,12 +157,5 @@ public class MarkdownView extends StackPane {
                  </body>
                </html>
                """.formatted(mainCssPath, bodyClass, contentHtml);
-    }
-
-    /**
-         * 一个内部类，专门用于从 JavaScript 进行回调。
-         * 其 public 方法可以被 JavaScript 环境安全调用。
-         */
-        public record JavaCallback(Consumer<Double> heightConsumer) {
     }
 }

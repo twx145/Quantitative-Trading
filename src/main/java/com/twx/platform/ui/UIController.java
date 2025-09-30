@@ -24,6 +24,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -697,15 +699,61 @@ public class UIController {
     }
 
     private void showApiKeyDialog() {
-        Optional<String> result = CustomDialog.showTextInput(stage,
-                "API Key 设置",
-                "请输入您的 Kimi API Key:",
-                ConfigurationManager.getInstance().getKimiApiKey(),
-                isDarkMode());
+        // 1. 创建一个新的自定义对话框
+        Dialog<Map<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("API Key 设置");
+        dialog.setHeaderText("请在这里配置您的 AI 和搜索服务 API Keys。");
+        dialog.initOwner(stage);
 
-        result.ifPresent(apiKey -> {
-            ConfigurationManager.getInstance().setKimiApiKey(apiKey.trim());
-            CustomDialog.show(stage, CustomDialog.DialogType.INFORMATION, "操作成功", "API Key 已保存。", isDarkMode());
+        // 2. 设置按钮
+        ButtonType saveButtonType = new ButtonType("保存", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        // 3. 创建表单布局 (GridPane)
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        // 4. 创建输入控件并加载当前配置
+        TextField kimiApiKeyField = new TextField();
+        kimiApiKeyField.setPromptText("请输入 Kimi API Key");
+        kimiApiKeyField.setText(ConfigurationManager.getInstance().getKimiApiKey());
+
+        TextField searchApiKeyField = new TextField();
+        searchApiKeyField.setPromptText("请输入 Search API Key (例如 Brave)");
+        searchApiKeyField.setText(ConfigurationManager.getInstance().getSearchApiKey());
+
+        // 将控件添加到 GridPane
+        grid.add(new Label("Kimi API Key:"), 0, 0);
+        grid.add(kimiApiKeyField, 1, 0);
+        grid.add(new Label("Search API Key:"), 0, 1);
+        grid.add(searchApiKeyField, 1, 1);
+
+        // 设置输入框宽度自适应
+        GridPane.setHgrow(kimiApiKeyField, Priority.ALWAYS);
+        GridPane.setHgrow(searchApiKeyField, Priority.ALWAYS);
+
+        dialog.getDialogPane().setContent(grid);
+
+        // 5. 设置对话框的结果转换器
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                Map<String, String> results = new HashMap<>();
+                results.put("kimi", kimiApiKeyField.getText());
+                results.put("search", searchApiKeyField.getText());
+                return results;
+            }
+            return null;
+        });
+
+        // 6. 显示对话框并处理返回结果
+        Optional<Map<String, String>> result = dialog.showAndWait();
+
+        result.ifPresent(apiKeys -> {
+            ConfigurationManager.getInstance().setKimiApiKey(apiKeys.get("kimi").trim());
+            ConfigurationManager.getInstance().setSearchApiKey(apiKeys.get("search").trim());
+            CustomDialog.show(stage, CustomDialog.DialogType.INFORMATION, "操作成功", "API Keys 已成功保存。", isDarkMode());
         });
     }
 
