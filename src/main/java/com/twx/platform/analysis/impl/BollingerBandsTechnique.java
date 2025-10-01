@@ -1,7 +1,9 @@
 package com.twx.platform.analysis.impl;
 
 import com.twx.platform.analysis.AnalysisTechnique;
-import javafx.scene.chart.XYChart;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.ta4j.core.BarSeries;
 import org.ta4j.core.Indicator;
 import org.ta4j.core.indicators.SMAIndicator;
@@ -12,6 +14,7 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.indicators.statistics.StandardDeviationIndicator;
 import org.ta4j.core.num.Num;
 
+import java.util.Date;
 import java.util.List;
 
 public class BollingerBandsTechnique implements AnalysisTechnique {
@@ -25,7 +28,7 @@ public class BollingerBandsTechnique implements AnalysisTechnique {
     }
 
     @Override
-    public List<XYChart.Series<Number, Number>> calculate(BarSeries series) {
+    public List<XYDataset> calculate(BarSeries series) {
         ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
         SMAIndicator sma = new SMAIndicator(closePrice, period);
         StandardDeviationIndicator sd = new StandardDeviationIndicator(closePrice, period);
@@ -35,19 +38,25 @@ public class BollingerBandsTechnique implements AnalysisTechnique {
         BollingerBandsLowerIndicator lowerBand = new BollingerBandsLowerIndicator(middleBand, sd, kNum);
         BollingerBandsUpperIndicator upperBand = new BollingerBandsUpperIndicator(middleBand, sd, kNum);
 
-        return List.of(
-                createSeries("BB Middle", series, middleBand),
-                createSeries("BB Upper", series, upperBand),
-                createSeries("BB Lower", series, lowerBand)
-        );
+        // 为每个指标创建一个 JFreeChart 的 XYSeries
+        XYSeries middleSeries = createSeries("BB Middle", series, middleBand);
+        XYSeries upperSeries = createSeries("BB Upper", series, upperBand);
+        XYSeries lowerSeries = createSeries("BB Lower", series, lowerBand);
+
+        // 将所有 XYSeries 添加到一个数据集中
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(middleSeries);
+        dataset.addSeries(upperSeries);
+        dataset.addSeries(lowerSeries);
+
+        return List.of(dataset);
     }
 
-    private XYChart.Series<Number, Number> createSeries(String name, BarSeries barSeries, Indicator<Num> indicator) {
-        XYChart.Series<Number, Number> series = new XYChart.Series<>();
-        series.setName(name);
+    private XYSeries createSeries(String name, BarSeries barSeries, Indicator<Num> indicator) {
+        XYSeries series = new XYSeries(name);
         for (int i = 0; i < barSeries.getBarCount(); i++) {
-            long epochDay = barSeries.getBar(i).getEndTime().toLocalDate().toEpochDay();
-            series.getData().add(new XYChart.Data<>(epochDay, indicator.getValue(i).doubleValue()));
+            Date date = Date.from(barSeries.getBar(i).getEndTime().toInstant());
+            series.add(date.getTime(), indicator.getValue(i).doubleValue());
         }
         return series;
     }

@@ -42,6 +42,20 @@
             <version>0.64.8</version>
         </dependency>
 
+        <!-- JFreeChart 核心库 -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.3</version> <!-- 使用一个较新的版本 -->
+        </dependency>
+
+        <!-- JFreeChart 与 JavaFX 的桥接库 -->
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart-fx</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>

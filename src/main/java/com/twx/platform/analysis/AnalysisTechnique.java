@@ -1,27 +1,14 @@
 package com.twx.platform.analysis;
 
-import javafx.scene.chart.XYChart;
+import org.jfree.data.xy.XYDataset; // 导入JFreeChart的数据集
 import org.ta4j.core.BarSeries;
-
 import java.util.List;
 
-/**
- * 分析技术接口
- * 定义了一个标准的分析方法，它接收K线数据并返回一个或多个可用于图表绘制的序列。
- * X轴使用纪元日数 (Epoch Day) 作为数值，Y轴是指标值。
- */
 public interface AnalysisTechnique {
-
     /**
-     * 根据输入的BarSeries计算分析指标。
-     * @param series K线数据序列
-     * @return 一个包含一个或多个图表序列的列表。例如，布林带会返回上、中、下三条线。
+     * 注意：返回类型已更改为 JFreeChart 的 XYDataset 列表
      */
-    List<XYChart.Series<Number, Number>> calculate(BarSeries series);
+    List<XYDataset> calculate(BarSeries series);
 
-    /**
-     * 获取此分析技术的名称，用于图例等。
-     * @return 名称字符串
-     */
     String getName();
 }

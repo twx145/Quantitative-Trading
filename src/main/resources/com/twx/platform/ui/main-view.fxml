@@ -48,43 +48,55 @@
             </ToggleButton>
         </HBox>
     </bottom>
-    <!-- 中心内容区 -->
+    <!-- 在你的 FXML 文件中，找到 <center> 标签 -->
     <center>
         <BorderPane>
             <top>
-                <!-- 【修改】移除了包含旧菜单按钮的HBox，只保留包含GridPane的VBox -->
                 <VBox spacing="10.0">
                     <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
+
+                    <!-- 【修改】用下面这个 GridPane 替换你原来的 -->
                     <GridPane hgap="10.0" vgap="10.0">
                         <columnConstraints>
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                             <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="200.0" />
+                            <!-- 【新增】为“复位视图”按钮增加一列 -->
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                            <!-- 为“运行回测”按钮保留的列 -->
                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                         </columnConstraints>
+
+                        <!-- Row 0 -->
                         <Label text="股票代码:" />
                         <TextField fx:id="tickerField" text="sh600519" GridPane.columnIndex="1" />
                         <Label text="初始资金:" GridPane.columnIndex="2" />
                         <TextField fx:id="initialCashField" text="100000.0" GridPane.columnIndex="3" />
+
+                        <!-- Row 1 -->
                         <Label text="开始日期:" GridPane.rowIndex="1" />
                         <DatePicker fx:id="startDatePicker" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <Label text="结束日期:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                         <DatePicker fx:id="endDatePicker" maxWidth="Infinity" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+                        <!-- Row 2 -->
                         <Label text="仓位策略:" GridPane.rowIndex="2" />
                         <ComboBox fx:id="positionSizerComboBox" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <Label fx:id="sizerParamLabel" text="参数:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
                         <TextField fx:id="sizerParamField" GridPane.columnIndex="3" GridPane.rowIndex="2" />
-                        <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+
+                        <!-- 【新增】复位视图按钮 -->
+                        <Button fx:id="resetViewButton" onAction="#handleResetChartView" text="复位视图" maxWidth="Infinity" GridPane.columnIndex="4" GridPane.rowIndex="2" />
+
+                        <!-- 【位置调整】将“运行回测”按钮移动到最后一列 -->
+                        <Button fx:id="runButton" maxWidth="Infinity" onAction="#handleRunBacktest" text="运行回测" GridPane.columnIndex="5" GridPane.rowIndex="2" />
+
                     </GridPane>
                 </VBox>
             </top>
             <center>
-                <!-- 图表部分 (保持不变) -->
-                <LineChart fx:id="priceChart" animated="false" title="股价走势与交易点">
-                    <xAxis><NumberAxis fx:id="xAxis" side="BOTTOM" label="日期" animated="false" forceZeroInRange="false" /></xAxis>
-                    <yAxis><NumberAxis fx:id="yAxis" side="LEFT" label="价格" animated="false" /></yAxis>
-                </LineChart>
+                <BorderPane fx:id="chartPane" />
             </center>
         </BorderPane>
     </center>
