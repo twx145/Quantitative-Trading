@@ -1,0 +1,25 @@
+# 使用带图形界面的 Docker 镜像
+image: gitpod/workspace-full-vnc
+
+tasks:
+  - name: Setup Environment
+    init: |
+      # 1. 强制安装 Java 21 (Gitpod 默认可能只有 11 或 17)
+      sdk install java 21.0.2-open
+      sdk default java 21.0.2-open
+      # 2. 预下载 Maven 依赖，防止第一次启动太慢
+      echo "Downloading dependencies..."
+      mvn clean dependency:go-offline
+    command: |
+      # 3. 设置图形界面环境变量
+      export DISPLAY=:0
+      # 4. 打印欢迎信息
+      echo "环境准备就绪，正在启动 JavaFX..."
+      # 5. 启动程序
+      mvn javafx:run
+
+# 端口配置：开放 6080 端口用于查看图形界面
+ports:
+  - port: 6080
+    onOpen: open-preview
+    visibility: public
