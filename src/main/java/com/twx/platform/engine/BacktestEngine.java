@@ -58,7 +58,7 @@ public class BacktestEngine {
                     if(success)executedOrders.add(order);
                 }
             }
-            portfolio.updateValue(ticker, series.getBar(i).getClosePrice().doubleValue());
+            portfolio.updateValue(ticker, series.getBar(i).getClosePrice().doubleValue(), series, i);
         }
 
         // --- 移除所有指标计算代码 ---

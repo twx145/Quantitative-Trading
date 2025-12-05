@@ -5,8 +5,7 @@ import com.twx.platform.ai.AIAssistant;
 import com.twx.platform.analysis.FinancialChart;
 import com.twx.platform.analysis.impl.*;
 import com.twx.platform.common.*;
-import com.twx.platform.data.DataProvider;
-import com.twx.platform.data.impl.SinaDataProvider;
+import com.twx.platform.data.impl.DataProvider;
 import com.twx.platform.engine.BacktestEngine;
 import com.twx.platform.engine.BacktestResult;
 import com.twx.platform.portfolio.Portfolio;
@@ -46,7 +45,6 @@ import org.ta4j.core.BarSeries;
 import java.awt.*;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
@@ -145,7 +143,7 @@ public class UIController {
 
         new Thread(() -> {
             try {
-                DataProvider dataProvider = new SinaDataProvider();
+                com.twx.platform.data.DataProvider dataProvider = new DataProvider();
                 Ticker ticker = new Ticker(tickerField.getText());
                 LocalDate startDate = startDatePicker.getValue();
                 LocalDate endDate = endDatePicker.getValue();
@@ -780,7 +778,7 @@ public class UIController {
     }
 
     private void showStockCodeSearchDialog() {
-        Dialog<DataProvider.StockSuggestion> dialog = new Dialog<>();
+        Dialog<com.twx.platform.data.DataProvider.StockSuggestion> dialog = new Dialog<>();
         dialog.setTitle("查询股票代码");
         dialog.setHeaderText("请输入关键词并选择市场进行搜索");
         dialog.initOwner(stage);
@@ -794,9 +792,9 @@ public class UIController {
         HBox topControls = new HBox(10);
         topControls.setAlignment(Pos.CENTER_LEFT);
 
-        ComboBox<DataProvider.MarketType> marketFilterBox = new ComboBox<>();
-        marketFilterBox.getItems().setAll(DataProvider.MarketType.values());
-        marketFilterBox.setValue(DataProvider.MarketType.A_SHARE);
+        ComboBox<com.twx.platform.data.DataProvider.MarketType> marketFilterBox = new ComboBox<>();
+        marketFilterBox.getItems().setAll(com.twx.platform.data.DataProvider.MarketType.values());
+        marketFilterBox.setValue(com.twx.platform.data.DataProvider.MarketType.A_SHARE);
 
         TextField searchField = new TextField();
         searchField.setPromptText("名称/拼音/代码");
@@ -806,7 +804,7 @@ public class UIController {
         topControls.getChildren().addAll(new Label("市场:"), marketFilterBox, searchField, searchButton);
         borderPane.setTop(topControls);
 
-        ListView<DataProvider.StockSuggestion> resultsView = new ListView<>();
+        ListView<com.twx.platform.data.DataProvider.StockSuggestion> resultsView = new ListView<>();
         resultsView.setPlaceholder(new Label("输入关键词后点击搜索"));
         BorderPane.setMargin(resultsView, new Insets(10, 0, 0, 0));
         borderPane.setCenter(resultsView);
@@ -816,7 +814,7 @@ public class UIController {
 
         Runnable performSearch = () -> {
             String keyword = searchField.getText().trim();
-            DataProvider.MarketType selectedMarket = marketFilterBox.getValue();
+            com.twx.platform.data.DataProvider.MarketType selectedMarket = marketFilterBox.getValue();
             if (keyword.isEmpty()) return;
 
             resultsView.getItems().clear();
@@ -824,8 +822,8 @@ public class UIController {
 
             new Thread(() -> {
                 try {
-                    DataProvider dataProvider = new SinaDataProvider();
-                    List<DataProvider.StockSuggestion> results = dataProvider.searchStocks(keyword, selectedMarket);
+                    com.twx.platform.data.DataProvider dataProvider = new DataProvider();
+                    List<com.twx.platform.data.DataProvider.StockSuggestion> results = dataProvider.searchStocks(keyword, selectedMarket);
                     Platform.runLater(() -> {
                         if (results.isEmpty()) {
                             resultsView.setPlaceholder(new Label("未找到匹配的结果"));
@@ -861,7 +859,7 @@ public class UIController {
 
         dialog.setResultConverter(dialogButton -> (dialogButton == okButtonType) ? resultsView.getSelectionModel().getSelectedItem() : null);
 
-        Optional<DataProvider.StockSuggestion> result = dialog.showAndWait();
+        Optional<com.twx.platform.data.DataProvider.StockSuggestion> result = dialog.showAndWait();
         result.ifPresent(stock -> tickerField.setText(stock.ticker()));
     }
 

@@ -1,11 +1,21 @@
+// 文件路径: com/twx/platform/portfolio/impl/BasicPortfolio.java
 package com.twx.platform.portfolio.impl;
 
 import com.twx.platform.common.Order;
 import com.twx.platform.common.Ticker;
 import com.twx.platform.common.TradeSignal;
 import com.twx.platform.portfolio.Portfolio;
+import org.ta4j.core.Bar;
+import org.ta4j.core.BarSeries;
+import org.ta4j.core.BaseBar;
+import org.ta4j.core.BaseBarSeries;
+import org.ta4j.core.num.DoubleNum;
 
-import java.util.*;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 投资组合的基本实现。
@@ -18,17 +28,11 @@ public class BasicPortfolio implements Portfolio {
     private final Map<String, Double> holdings; // Key: Ticker Symbol, Value: Quantity
     private double totalValue;
 
-    // --- 【新增】用于性能追踪的成员变量 ---
-    /**
-     * 记录每笔已完成交易（卖出时）的盈亏金额。
-     */
     private final List<Double> tradeProfits = new ArrayList<>();
-    /**
-     * 记录每个持仓的平均成本，用于计算盈亏。
-     * Key: Ticker Symbol, Value: Average Cost per Share
-     */
     private final Map<String, Double> averageCost = new HashMap<>();
 
+    // --- 【新增】用于记录账户每日净值的序列 ---
+    private final BarSeries valueHistory;
 
     public BasicPortfolio(double initialCash, double commissionRate) {
         this.initialCash = initialCash;
@@ -36,6 +40,8 @@ public class BasicPortfolio implements Portfolio {
         this.commissionRate = commissionRate;
         this.holdings = new HashMap<>();
         this.totalValue = initialCash;
+        // --- 【新增】初始化净值序列 ---
+        this.valueHistory = new BaseBarSeries("PortfolioValue", DoubleNum::valueOf);
     }
 
     @Override
@@ -50,13 +56,10 @@ public class BasicPortfolio implements Portfolio {
             double totalCost = grossValue + commission;
             if (cash >= totalCost) {
                 cash -= totalCost;
-
-                // --- 【修改】更新平均持仓成本 ---
                 double currentQuantity = holdings.getOrDefault(symbol, 0.0);
                 double currentAvgCost = averageCost.getOrDefault(symbol, 0.0);
                 double newTotalQuantity = currentQuantity + quantity;
                 double newAvgCost = ((currentAvgCost * currentQuantity) + (price * quantity)) / newTotalQuantity;
-
                 holdings.put(symbol, newTotalQuantity);
                 averageCost.put(symbol, newAvgCost);
                 return true;
@@ -65,16 +68,12 @@ public class BasicPortfolio implements Portfolio {
             }
         } else if (order.signal() == TradeSignal.SELL) {
             if (holdings.getOrDefault(symbol, 0.0) >= quantity) {
-                // --- 【修改】计算并记录交易盈亏 ---
                 double costBasis = averageCost.getOrDefault(symbol, 0.0) * quantity;
                 double profit = grossValue - costBasis;
-                tradeProfits.add(profit); // 记录税前盈亏
-
+                tradeProfits.add(profit);
                 double totalProceeds = grossValue - commission;
                 cash += totalProceeds;
                 holdings.put(symbol, holdings.get(symbol) - quantity);
-
-                // 如果全部卖出，清理成本记录
                 if (Math.abs(holdings.get(symbol)) < 0.0001) {
                     averageCost.remove(symbol);
                 }
@@ -86,12 +85,28 @@ public class BasicPortfolio implements Portfolio {
         return false;
     }
 
+    /**
+     * 【修改】更新总价值，并记录到历史序列中。
+     */
     @Override
-    public void updateValue(Ticker ticker, double currentPrice) {
-        double holdingsValue = holdings.entrySet().stream()
-                .mapToDouble(entry -> entry.getValue() * (entry.getKey().equals(ticker.symbol()) ? currentPrice : 0))
-                .sum();
+    public void updateValue(Ticker ticker, double currentPrice, BarSeries series, int index) {
+        double holdingsValue = holdings.getOrDefault(ticker.symbol(), 0.0) * currentPrice;
         this.totalValue = this.cash + holdingsValue;
+
+        // --- 【新增】将当前的总价值作为一根K线记录下来 ---
+        // 使用价格序列的Bar来获取时间戳，确保对齐
+        Bar underlyingBar = series.getBar(index);
+        // 创建一个只包含收盘价（即我们的总价值）的Bar
+        Bar valueBar = BaseBar.builder(DoubleNum::valueOf, Double.class)
+                .timePeriod(Duration.ofDays(1))
+                .endTime(underlyingBar.getEndTime())
+                .openPrice(this.totalValue)
+                .highPrice(this.totalValue)
+                .lowPrice(this.totalValue)
+                .closePrice(this.totalValue)
+                .volume((double) 0)
+                .build();
+        this.valueHistory.addBar(valueBar);
     }
 
     @Override
@@ -104,13 +119,22 @@ public class BasicPortfolio implements Portfolio {
         return totalValue;
     }
 
+    @Override
+    public double getInitialCash() {
+        return initialCash;
+    }
+
     /**
-     * 【增强版】生成并返回详细的业绩总结报告字符串。
-     * @return 格式化后的业绩报告
+     * 【新增】实现获取净值历史的接口方法。
      */
     @Override
+    public BarSeries getValueHistory() {
+        return valueHistory;
+    }
+
+    @Override
     public String getSummary() {
-        // --- 核心计算逻辑 ---
+        // 这个方法现在只负责提供基于交易的统计，更复杂的指标移至 PerformanceAnalyzer
         double totalProfit = tradeProfits.stream().filter(p -> p > 0).mapToDouble(Double::doubleValue).sum();
         double totalLoss = tradeProfits.stream().filter(p -> p < 0).mapToDouble(Double::doubleValue).sum();
         long winningTrades = tradeProfits.stream().filter(p -> p > 0).count();
@@ -123,24 +147,14 @@ public class BasicPortfolio implements Portfolio {
         double profitLossRatio = (avgLoss == 0) ? Double.POSITIVE_INFINITY : -avgProfit / avgLoss;
         double profitFactor = (totalLoss == 0) ? Double.POSITIVE_INFINITY : -totalProfit / totalLoss;
 
-        // --- 格式化输出 ---
         StringBuilder summary = new StringBuilder();
-        summary.append("\n--- 回测业绩报告 ---\n\n");
-
-        summary.append("## 核心表现\n");
-        summary.append(String.format("初始资金: %,.2f\n", initialCash));
-        summary.append(String.format("最终总价值: %,.2f\n", totalValue));
-        double returnRate = (initialCash == 0) ? 0 : (totalValue - initialCash) / initialCash;
-        summary.append(String.format("净利润: %,.2f\n", totalValue - initialCash));
-        summary.append(String.format("总收益率: %.2f%%\n\n", returnRate * 100));
-
         summary.append("## 交易统计\n");
         summary.append(String.format("总交易次数: %d\n", totalTrades));
         summary.append(String.format("盈利交易: %d\n", winningTrades));
         summary.append(String.format("亏损交易: %d\n", losingTrades));
         summary.append(String.format("胜率: %.2f%%\n", winRate * 100));
-        summary.append(String.format("利润因子: %.2f\n", profitFactor));
-        summary.append(String.format("平均盈亏比: %.2f\n\n", profitLossRatio));
+        summary.append(String.format("利润因子 (Profit Factor): %.2f\n", profitFactor));
+        summary.append(String.format("平均盈亏比 (P/L Ratio): %.2f\n\n", profitLossRatio));
 
         summary.append("## 最终状态\n");
         summary.append(String.format("剩余现金: %,.2f\n", cash));
@@ -155,7 +169,6 @@ public class BasicPortfolio implements Portfolio {
                 }
             });
         }
-        summary.append("--------------------\n");
         return summary.toString();
     }
 }
