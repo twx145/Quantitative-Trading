@@ -151,7 +151,22 @@
 .theme-dark .combo-box-popup .list-cell:filled:selected { -fx-background-color: -fx-theme-accent; -fx-text-fill: -fx-theme-text-on-accent; }
 .theme-dark .combo-box-base .arrow { -fx-background-color: -fx-theme-text-secondary; }
 .theme-dark .combo-box-base:hover .arrow { -fx-background-color: -fx-theme-text-primary; }
+/* 【新增/修改】强制修复 输入框 和 下拉框 的文字颜色 */
+.theme-dark .text-field,
+.theme-dark .text-area {
+    -fx-text-fill: -fx-theme-text-primary; /* 确保输入框文字变白 */
+}
 
+/* 【新增】修复 ComboBox 按钮内部显示的文字颜色 */
+.theme-dark .combo-box .list-cell {
+    -fx-text-fill: -fx-theme-text-primary;
+    -fx-background-color: transparent; /* 避免背景色遮挡 */
+}
+
+/* 【新增】修复 ComboBox 处于编辑模式或显示状态时的颜色 */
+.theme-dark .combo-box-base {
+    -fx-text-fill: -fx-theme-text-primary;
+}
 /* ==========================================================================
    6. 表格 (TableView)
    ========================================================================== */
@@ -207,10 +222,104 @@
 .macd-signal-series.chart-series-line { -fx-stroke: #2ecc71; } /* Green */
 .rsi-series.chart-series-line { -fx-stroke: #34495e; } /* Dark Blue Grey */
 
-/* --- Dark Theme Overrides for Chart --- */
-.theme-dark .chart-legend { -fx-background-color: -fx-theme-control-bg; }
-.theme-dark .chart-legend .label { -fx-text-fill: -fx-theme-text-primary; }
+/* --- Dark Theme Overrides for TableView (修复版) --- */
 
+/* 1. 核心修复：强制设置表格整体和内部视口的背景色 */
+.theme-dark .table-view,
+.theme-dark .table-view .virtual-flow .clipped-container,
+.theme-dark .table-view .virtual-flow .sheet {
+    -fx-background-color: -fx-theme-control-bg; /* 使用深色背景 #2c3e50 */
+    -fx-control-inner-background: -fx-theme-control-bg; /* 关键：覆盖默认的控件内部背景变量 */
+    -fx-control-inner-background-alt: derive(-fx-theme-control-bg, -2%); /* 偶数行背景变量 */
+}
+
+/* 2. 表头背景 (Header) */
+.theme-dark .table-view .column-header-background {
+    -fx-background-color: derive(-fx-theme-base-bg, 5%);
+}
+.theme-dark .table-view .column-header,
+.theme-dark .table-view .column-header .filler {
+    -fx-background-color: transparent; /* 让背景色透出来 */
+}
+.theme-dark .table-view .column-header .label {
+    -fx-text-fill: -fx-theme-text-primary;
+}
+/* 2. 表头背景 (Header) - 修复右侧留白问题 */
+.theme-dark .table-view .column-header-background {
+    /* 设定表头这一整行的背景色 */
+    -fx-background-color: derive(-fx-theme-base-bg, 5%);
+}
+
+/* 【关键修复】表头右侧没有标题的“空白填充区” (filler) */
+.theme-dark .table-view .column-header-background .filler {
+    -fx-background-color: transparent; /* 设为透明，让上一行的背景色透出来 */
+}
+/* 双重保险：直接给 filler 指定颜色，防止透明无效 */
+.theme-dark .table-view .filler {
+    -fx-background-color: derive(-fx-theme-base-bg, 5%);
+}
+
+/* 单个列标题 */
+.theme-dark .table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent; /* 去掉列标题之间的白色分割线 */
+}
+
+/* 列标题文字 */
+.theme-dark .table-view .column-header .label {
+    -fx-text-fill: -fx-theme-text-primary;
+    -fx-font-weight: bold;
+}
+
+/* 隐藏右上角可能出现的“显示/隐藏列”按钮的白色背景 */
+.theme-dark .table-view .show-hide-columns-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-theme-text-primary;
+}
+/* 3. 数据行 (Rows) - 包含有数据和无数据的行 */
+.theme-dark .table-view .table-row-cell {
+    -fx-background-color: -fx-theme-control-bg;
+    -fx-border-width: 0 0 1px 0; /* 可选：只保留底部细线 */
+    -fx-border-color: transparent;
+}
+/* 空行 (Empty Rows) - 关键：防止数据不足时下方出现白色 */
+.theme-dark .table-view .table-row-cell:empty {
+    -fx-background-color: -fx-theme-control-bg;
+}
+/* 偶数行 (Zebra stripes) - 稍微深一点 */
+.theme-dark .table-view .table-row-cell:odd {
+    -fx-background-color: derive(-fx-theme-control-bg, -3%);
+}
+
+/* 4. 单元格内容 (Cells) */
+.theme-dark .table-view .table-cell {
+    -fx-text-fill: -fx-theme-text-primary;
+    -fx-border-color: transparent;
+}
+
+/* 5. 交互状态 (Hover & Selected) */
+.theme-dark .table-view .table-row-cell:filled:hover {
+    -fx-background-color: derive(-fx-theme-control-bg, 15%);
+}
+.theme-dark .table-view .table-row-cell:filled:selected,
+.theme-dark .table-view .table-row-cell:filled:selected:hover {
+    -fx-background-color: -fx-theme-accent;
+}
+.theme-dark .table-view .table-row-cell:filled:selected .table-cell {
+    -fx-text-fill: -fx-theme-text-on-accent;
+}
+
+/* 6. 表格角落 (Corner) - 修复右下角如果有滚动条交叉时的白色块 */
+.theme-dark .table-view .corner {
+    -fx-background-color: -fx-theme-control-bg;
+}
+
+/* 7. 表格内的滚动条特别处理 (防止滚动条轨道变白) */
+.theme-dark .table-view .scroll-bar:horizontal .track,
+.theme-dark .table-view .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
 /* ==========================================================================
    8. AI 助手面板
    ========================================================================== */
@@ -387,6 +496,53 @@
     -fx-background-color: -fx-theme-text-on-accent;
 }
 
+/* ==========================================================================
+   12. 滚动条适配 (ScrollBar) - 新增
+   ========================================================================== */
+
+/* 隐藏表格右下角可能出现的白色方块 */
+.theme-dark .corner {
+    -fx-background-color: -fx-theme-base-bg;
+}
+
+/* 滚动条整体背景透明 */
+.theme-dark .scroll-bar {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+/* 滚动条轨道 (Track) - 即滚动条的背景槽 */
+.theme-dark .scroll-bar .track {
+    -fx-background-color: transparent; /* 或者使用 -fx-theme-control-bg */
+    -fx-border-color: transparent;
+}
+.theme-dark .scroll-bar .track-background {
+    -fx-background-color: transparent;
+}
+
+/* 滚动条滑块 (Thumb) - 即拖动的那部分 */
+.theme-dark .scroll-bar .thumb {
+    -fx-background-color: #546E7A; /* 使用一个较深的灰色 */
+    -fx-background-radius: 4px;
+}
+.theme-dark .scroll-bar .thumb:hover {
+    -fx-background-color: -fx-theme-accent; /* 鼠标悬停变亮 */
+}
+.theme-dark .scroll-bar .thumb:pressed {
+    -fx-background-color: -fx-theme-accent-hover;
+}
+
+/* 隐藏滚动条两端的小箭头按钮 */
+.theme-dark .scroll-bar .increment-button,
+.theme-dark .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.theme-dark .scroll-bar .increment-arrow,
+.theme-dark .scroll-bar .decrement-arrow {
+    -fx-shape: null;
+    -fx-padding: 0;
+}
 /* ==========================================================================
    [FINAL v2.1] Corrected & Enhanced Custom Dialog Styling
    ========================================================================== */
